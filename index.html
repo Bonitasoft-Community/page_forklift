@@ -1,0 +1,254 @@
+<!doctype html>
+<!--[if lt IE 7]>
+<html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>
+<html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>
+<html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <title>ForkLift</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="pageResource?page=custompage_forklift&location=style/animate.css" />
+    <link rel="stylesheet" href="pageResource?page=custompage_forklift&location=style/bootstrap.min.css">
+	<link rel="stylesheet" href="pageResource?page=custompage_forklift&location=style/main.css">
+	<link rel="stylesheet" href="pageResource?page=custompage_forklift&location=style/style.css">
+
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	<script type="text/javascript" src="https://www.google.com/uds/?file=visualization&amp;v=1&amp;hl=fr&amp;packages=corechart&amp;async=2"></script>
+	<link type="text/css" href="https://www.google.com/uds/api/visualization/1.0/ff67c3772da186a412ae3231c32409e9/ui+fr.css" rel="stylesheet">
+	<script type="text/javascript" src="https://www.google.com/uds/api/visualization/1.0/ff67c3772da186a412ae3231c32409e9/format+fr,default+fr,ui+fr,corechart+fr.I.js"></script>
+	<link href="https://ajax.googleapis.com/ajax/static/modules/gviz/1.0/core/tooltip.css" rel="stylesheet" type="text/css">
+
+<style>
+.Loading {
+	display: inline-block;
+	vertical-align: middle;
+	background-position: center;
+	background: no-repeat;
+	background-image:
+		url('data:image/gif;base64,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');
+	width: 20px;
+	height: 20px;
+	margin-top: 6px;
+	margin-right: 7px;
+}
+</style>
+
+</head>
+<body ng-app="forkliftmonitor">
+
+<div class="col-lg-12"  ng-controller="ForkLiftControler as forkliftctrl">
+
+	<div class="bs-component" >
+		<center>
+		<table><tr><td><h1>Forklift</h1></td><td rowspan="2"><img src="pageResource?page=custompage_forklift&location=img/forklift.jpg" width="150" heigth="150" /></td></tr>
+			<tr><td style="font-size:0.8em"> <a href="" ng-click="forkliftctrl.showhistory( ! forkliftctrl.isshowhistory )">V1.0</a></td></tr>
+			<tr><td>
+			<div id="showHistory" ng-show="forkliftctrl.isshowhistory" style="border-width:2px;border-style:ridge;border-color:blue">
+			1.0 First version<br>
+			</div>
+				
+			</td></tr>
+		</table>
+		</center>
+	</div>
+
+	<div class="bs-component" >
+		<h3><span class="glyphicon glyphicon-th"></span>
+			<a href="#" ng-click="forkliftctrl.showsources = ! forkliftctrl.showsources" style="text-decoration:none">					
+  				<span ng-show="forkliftctrl.showsources" class="glyphicon glyphicon-chevron-down" style="font-size: 18px;"></span>
+ 				</a>
+			<a href="#" ng-click="forkliftctrl.showsources = ! forkliftctrl.showsources" style="text-decoration:none">					
+				<span ng-show="! forkliftctrl.showsources" class="glyphicon glyphicon-chevron-right"  style="font-size: 18px;"></span>
+			</a>
+		Configuration</h3>
+		<div ng-show="forkliftctrl.showsources">		
+
+			<!--  --------------------------------------------------------- Source -->
+			<legend class="text-primary">Source</legend>
+			
+			<table class="table table-striped table-hover table-condensed">
+				<tbody ng-repeat="source in forkliftctrl.config.sources track by $index">
+				
+					<tr ng-show="source.type=='DIR'">
+						<td>
+							<span class="explanation">All files behind this directory is immediately loaded</span><p>
+							Directory: <input type="text" ng-model="source.directory" size="60">
+						</td>
+						<td>
+							<button ng-click="forkliftctrl.removeOneSource( source )"  class="btn btn-danger btn-xs">Remove</button>
+						</td>
+					</tr>
+					
+					<tr ng-show="source.type=='BONITA'">
+						<td>
+							<span class="explanation">The external Bonita Server is called, and the artefacts are compare to the local server. All new artefact are loaded.</span><p>
+							<table>
+							<tr><td>Bonita server Host:</td><td> <input type="text" ng-model="source.host"  ></td></tr>
+							<tr><td>Bonita server Port:</td><td> <input type="text" ng-model="source.port" ></td></tr>
+							<tr><td>Login:</td><td> <input type="text" ng-model="source.login" ></td></tr>
+							<tr><td>Password:</td><td> <input type="password" ng-model="source.password" ></td></tr>
+							<tr><td colspan="2">
+								<button ng-click="forkliftctrl.testConnection( source )"  class="btn btn-primary btn-xs">Test connection</button>
+								<div ng-bind-html="forkliftctrl.getListEvents(source.listevents)"></div>
+							
+							</table>
+						</td>
+						<td>
+							<button ng-click="forkliftctrl.removeOneSource( source )"  class="btn btn-danger btn-xs">Remove</button>
+						</td>
+					</tr>
+				</tbody>		
+			</table>
+			
+			
+			
+			Add a source:
+			<select ng-model="forkliftctrl.config.toadd" style="width: 150px;">
+					<option ng-repeat="oneconf in forkliftctrl.config.options" value="{{oneconf.type}}">{{oneconf.name}}</option>
+			</select>
+			<button ng-click="forkliftctrl.addOneSource( forkliftctrl.config.toadd )"  class="btn btn-primary btn-xs"  ng-disabled="forkliftctrl.config.wait">Add</button>
+			
+			<!--  --------------------------------------------------------- Frequency -->
+			<legend class="text-primary">Frequency</legend>
+			<input type="checkbox" ng-model="forkliftctrl.frequency.active">Active<p>
+			<span class="explanation">Active and fix the frequency of the verification</span><p>
+			Months <input type="number" ng-model="forkliftctrl.frequency.months" ng-disabled="!forkliftctrl.frequency.active" size="3">
+			Days <input type="number" ng-model="forkliftctrl.frequency.days" ng-disabled="!forkliftctrl.frequency.active" size="3">
+			Hours <input type="number" ng-model="forkliftctrl.frequency.hours" ng-disabled="!forkliftctrl.frequency.active" size="3">
+			Minutes <input type="number" ng-model="forkliftctrl.frequency.minutes" ng-disabled="!forkliftctrl.frequency.active" size="3">
+			Seconds <input type="number" ng-model="forkliftctrl.frequency.secondes" ng-disabled="!forkliftctrl.frequency.active" size="3">
+			
+			
+			<!--  --------------------------------------------------------- Content -->
+			<legend class="text-primary">Content</legend>
+	
+			<input type="checkbox" ng-model="forkliftctrl.config.content.organization" 	ng-disable="1==1">Organization</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.layout"  		ng-disable="1==1">Layout</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.theme"    		ng-disable="1==1">Theme</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.pages"     	ng-disable="1==1">Pages</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.restapi"		ng-disable="1==1">RestAPI</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.profile"		>Profiles</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.livingapp"		ng-disable="1==1">Living Application</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.bdm"			ng-disable="1==1">Business Data Model</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.process"		>Process</input>
+			<button ng-click="forkliftctrl.checkContent( true )"  class="btn btn-info btn-xs" >Check All</button>			
+			
+			
+			<p>
+			<span ng-show="forkliftctrl.config.wait"> 
+				<span class="Loading">.</span> 
+			</span>
+			<button ng-click="forkliftctrl.saveConfiguration()"  class="btn btn-success btn-lg" ng-disabled="forkliftctrl.config.wait">Save</button>			
+			<div ng-bind-html="forkliftctrl.getListEvents(forkliftctrl.config.listevents)"></div>
+		</div>						
+	</div>
+	
+	
+	
+	<div class="bs-component" >
+		<legend class="text-primary"><span class="glyphicon glyphicon-th"></span>Monitoring</legend>
+		
+		
+		<center>
+			<span ng-show="forkliftctrl.synchronisation.wait"> 
+				<span class="Loading">.</span> 
+			</span>
+			<button ng-click="forkliftctrl.synchronisationDetect()"  class="btn btn-info" ng-disabled="forkliftctrl.synchronisation.wait">Detection</button><p>
+		</center>
+		<table class="table table-striped table-hover table-condensed">
+			<tr>
+				<th>Type</th>
+				<th>Name</th>
+				<th>Version</th>
+				<th>Date</th>
+				<th>Analysis</th>
+				<th style="background:#fcf8e3">Current version</th>
+				<th style="background:#fcf8e3">Deployed date</th>
+				<th colspan="2">Decision</th>
+			</tr>
+			
+			<tr ng-repeat="item in forkliftctrl.synchronisation.detection.items track by $index">
+				<td>{{item.type}}</td>
+				<td>{{item.name}}</td>
+				<td>{{item.version}}</td>
+				<td>{{item.date}}</td>
+				<td>{{item.report}}</td>
+				<td style="background:#fcf8e3">{{item.presentversion}}</td>
+				<td style="background:#fcf8e3">{{item.presentdate}}</td>
+				<td>
+					<span ng-show="item.detectionstatus=='NEWARTEFAC'" class="label label-success">New</span>
+					<span ng-show="item.detectionstatus=='SAME'"       class="label label-Warning">same</span>
+					<span ng-show="item.detectionstatus=='OLDVERSION'" class="label label-danger">Old version</span>
+					<span ng-show="item.detectionstatus=='NEWVERSION'" class="label label-success">New</span>
+				</td>
+					
+				<td>
+					<div ng-show="item.invaliddecision == true">
+						Done
+					</div>
+					<div ng-show="! item.invaliddecision == true">					
+						<select ng-model="item.action" style="width: 150px;">
+							<option ng-repeat="onestatus in forkliftctrl.synchronisation.actions" value="{{onestatus.type}}" ng-selected="item.action==onestatus.type">{{onestatus.name}}</option>
+						</select>
+					</div>
+					<br>
+					
+						<span ng-show="item.deploystatus=='NOTHINGDONE'" class="label label-warning">Nothing done</span>
+						<span ng-show="item.deploystatus=='NEWALREADYINPLACE'" class="label label-warning">New already in place</span>
+						<span ng-show="item.deploystatus=='REMOVEFAIL'" class="label label-danger">Remove failed done</span>
+						<span ng-show="item.deploystatus=='LOADFAILED'" class="label label-danger">Load failed</span>
+						<span ng-show="item.deploystatus=='DEPLOYEDFAILED'" class="label label-danger">Deployment failed</span>
+						<span ng-show="item.deploystatus=='DEPLOYED'" class="label label-success">Deployed</span>
+						<span ng-show="item.deploystatus=='DELETED'" class="label label-success">Removed</span>
+						
+						
+				
+					<div ng-bind-html="forkliftctrl.getListEvents( item.listevents )"></div>		
+				</td>
+				
+			</tr>
+		</table>
+		<center>
+			<span ng-show="forkliftctrl.synchronisation.wait"> 
+				<span class="Loading">.</span> 
+			</span>
+		
+			<button ng-click="forkliftctrl.synchronisationExecute()"  class="btn btn-warning" ng-disabled="forkliftctrl.synchronisation.wait">Apply</button><p>
+		</center>
+		
+		<div ng-bind-html="forkliftctrl.getListEvents(forkliftctrl.synchronisation.listevents)"></div>
+		<textarea ng-model="forkliftctrl.synchronisation.report" rows="20" style="width:100%;" readonly></textarea>
+		<p>
+		Forklift={{forkliftctrl.synchronisation}}
+	
+
+</div>
+
+
+
+<!-- Third party dependencies -->
+
+<script src="pageResource?page=custompage_forklift&location=3rd-party/jquery.min.js"></script>
+
+<script src="pageResource?page=custompage_forklift&location=3rd-party/angular.min.js"></script>
+
+<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-resource.min.js"></script>
+<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-cookies.min.js"></script>
+
+<script src="pageResource?page=custompage_forklift&location=3rd-party/bootstrap/js/bootstrap.min.js"></script>
+<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-bootstrap-tpls.min.js"></script>
+<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-sanitize.min.js"></script>
+<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-file-upload.js"></script>
+<script src="pageResource?page=custompage_forklift&location=3rd-party/ng-google-chart.js"></script>
+
+
+<!-- Application dependencies -->
+<script src="pageResource?page=custompage_forklift&location=forkliftmonitor.js"></script>
+
+</body>
+</html>

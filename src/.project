@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>CustomPageForklift</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.m2e.core.maven2Builder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+		<nature>org.eclipse.m2e.core.maven2Nature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>custompage/7.2.3/Index.groovy</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.2.3-c/workspace/Premiere%20Digital/bonita_home/client/tenants/1/work/pages/custompage_forklift/Index.groovy</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.2.3/forkliftmonitor.js</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.2.3-c/workspace/Premiere%20Digital/bonita_home/client/tenants/1/work/pages/custompage_forklift/resources/forkliftmonitor.js</locationURI>
+		</link>
+		<link>
+			<name>custompage/7.2.3/index.html</name>
+			<type>1</type>
+			<locationURI>PARENT-5-PROJECT_LOC/bonita/BPM-SP-7.2.3-c/workspace/Premiere%20Digital/bonita_home/client/tenants/1/work/pages/custompage_forklift/index.html</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>
