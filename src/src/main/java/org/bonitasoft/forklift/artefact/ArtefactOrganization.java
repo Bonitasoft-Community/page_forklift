@@ -1,21 +1,22 @@
 package org.bonitasoft.forklift.artefact;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Logger;
 
+import org.bonitasoft.engine.identity.ImportPolicy;
+import org.bonitasoft.engine.identity.OrganizationImportException;
 import org.bonitasoft.forklift.ForkliftAPI.BonitaAccessor;
-import org.bonitasoft.forklift.ForkliftAPI.ResultSynchronization;
-import org.bonitasoft.forklift.artefact.Artefact.DeployOperation;
-import org.bonitasoft.forklift.artefact.Artefact.DeploymentStatus;
-import org.bonitasoft.forklift.artefact.Artefact.DetectionStatus;
 import org.bonitasoft.forklift.source.Source;
 import org.bonitasoft.log.event.BEvent;
+import org.bonitasoft.log.event.BEvent.Level;
 
 public class ArtefactOrganization extends Artefact {
+
+	private static Logger logger = Logger.getLogger(ArtefactResource.class.getName());
 
 	public String name;
 	public String version;
@@ -28,23 +29,38 @@ public class ArtefactOrganization extends Artefact {
 
 	
 
-	public List<BEvent> loadFromFile(File file) {
-		return new ArrayList<BEvent>();
-	}
-
 	@Override
 	public DeployOperation detectDeployment(BonitaAccessor bonitaAccessor)
 	{
 		DeployOperation deployOperation = new DeployOperation();
-		deployOperation.detectionStatus= DetectionStatus.SAME;
+		deployOperation.detectionStatus= DetectionStatus.NEWARTEFAC;
 		return deployOperation;
+	}
+	
+	protected ByteArrayOutputStream content;
+
+	@Override
+	public List<BEvent> loadFromFile(File file) {
+		List<BEvent> listEvents = new ArrayList<BEvent>();
+		try {
+			content = readFile(file);
+		} catch (Exception e) {
+			listEvents.add(new BEvent(EventReadFile, e, "Page[" + getName() + "] file[" + file.getAbsolutePath() + "]"));
+		}
+		return listEvents;
 	}
 	
 	
 	@Override
 	public DeployOperation deploy(BonitaAccessor bonitaAccessor) {
 		DeployOperation deployOperation = new DeployOperation();
-		deployOperation.deploymentStatus= DeploymentStatus.DEPLOYEDFAILED;
+		try {
+			bonitaAccessor.organisationAPI.importOrganization( content.toString(), ImportPolicy.MERGE_DUPLICATES );
+		} catch (OrganizationImportException e) {
+			deployOperation.listEvents.add( new BEvent( EventErrorAtDeployment, e, ""));
+			logger.severe("Forklift.ArtefactOrganization  error import organization "+e.toString());
+		}
+		deployOperation.deploymentStatus= DeploymentStatus.DEPLOYED;
 		return deployOperation;
 	}
 }

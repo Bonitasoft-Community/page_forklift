@@ -31,7 +31,7 @@ appCommand.controller('ForkLiftControler',
 					'toadd': 'DIR',
 					
 	}
-	
+		
 	this.showhistory = function( showHistory ) {
 		this.isshowhistory = showHistory;
 		};
@@ -160,7 +160,7 @@ appCommand.controller('ForkLiftControler',
 		for (var i in self.synchronisation.detection.items)
 		{
 			var item=self.synchronisation.detection.items[ i ];
-			if (item.action=='IGNORE')
+			if (item.action=='IGNORE' || item.display==false)
 				continue;
 			var actionitem={};
 			actionitem.type=item.type;
@@ -213,6 +213,65 @@ appCommand.controller('ForkLiftControler',
 			});
 		
 		
+	}
+	
+	this.showartefact={ 'layout':true, 
+			'theme':true,
+			'lookandfeel':true,
+			'bdm':true,
+			'organization':true,
+			'restapi':true,
+			'pages':true,
+			'process':true,
+			'profile':true,
+			'livingapp':true
+	}
+
+	this.getItems=function()
+	{
+
+		var listdisplay=[];
+		if (this.synchronisation.detection && this.synchronisation.detection.items)
+		{
+			for (var i in this.synchronisation.detection.items)
+			{		
+				var item= this.synchronisation.detection.items[ i ];
+				console.log("item="+item.type+" / "+item.name);
+				
+				if (item.type === 'layout')
+					item.display = this.showartefact.layout;
+				else if (item.type === 'theme')
+					item.display = this.showartefact.theme;
+				else if (item.type === 'lookandfeel')
+					item.display = this.showartefact.lookandfeel;
+				else if (item.type === 'bdm')
+					item.display = this.showartefact.bdm;
+				else if (item.type === 'organization')
+					item.display = this.showartefact.organization;
+				else if (item.type === 'restapi')
+					item.display = this.showartefact.restapi;
+				else if (item.type === 'pages')
+					item.display = this.showartefact.pages;
+				else if (item.type === 'process')
+					item.display = this.showartefact.process;
+				else if (item.type === 'profile')
+					item.display = this.showartefact.profile;
+				else if (item.type === 'livingapp')
+					item.display = this.showartefact.livingapp;
+				
+				else
+					listdisplay.push( item )
+			}
+			
+			for (var i in this.synchronisation.detection.items)
+			{		
+				var item= this.synchronisation.detection.items[ i ];
+				if (item.display==true)
+					listdisplay.push( item )
+			}
+		}
+		
+		return listdisplay;
 	}
 	this.ping = function()
 	{

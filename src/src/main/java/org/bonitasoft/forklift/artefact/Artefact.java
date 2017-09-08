@@ -1,8 +1,10 @@
 package org.bonitasoft.forklift.artefact;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,14 +12,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bonitasoft.log.event.BEvent;
-
+import org.apache.commons.io.IOUtils;
 import org.bonitasoft.forklift.ForkliftAPI.BonitaAccessor;
 import org.bonitasoft.forklift.source.DeploySet;
 import org.bonitasoft.forklift.source.Source;
+import org.bonitasoft.log.event.BEvent;
+import org.bonitasoft.log.event.BEvent.Level;
 
 public abstract class Artefact {
 
+	protected static BEvent EventErrorAtDeployment = new BEvent(Artefact.class.getName(), 1, Level.APPLICATIONERROR, "Error at deployment", "The artefact can't be deployed", "artefact is not accessible", "Check the exception");
+	protected static BEvent EventErrorAtDetection = new BEvent(Artefact.class.getName(), 2, Level.APPLICATIONERROR, "Error at detection", "Detection on the server for this artefact failed, can't know if the artefact exist or not", "Artefact can't be deployed", "Check the exception");
+	protected static BEvent EventReadFile = new BEvent(Artefact.class.getName(), 3, Level.APPLICATIONERROR, "File error", "The file can't be read", "The artefact is ignored", "Check the exception");
+
+	
 	public enum DetectionStatus {
 		NEWARTEFAC, SAME, OLDVERSION, NEWVERSION,DETECTIONFAILED
 	};
@@ -152,5 +160,10 @@ public abstract class Artefact {
 		return deploySet;
 	}
 
-
+	protected ByteArrayOutputStream readFile( File file) throws FileNotFoundException, IOException
+	{
+	 ByteArrayOutputStream out = new ByteArrayOutputStream();
+	 IOUtils.copy(new FileInputStream(file), out);
+	 return out;
+	}
 }

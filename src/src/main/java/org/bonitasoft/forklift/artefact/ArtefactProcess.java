@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.bonitasoft.engine.bpm.bar.BusinessArchive;
 import org.bonitasoft.engine.bpm.bar.BusinessArchiveFactory;
@@ -22,12 +20,8 @@ import org.bonitasoft.engine.exception.AlreadyExistsException;
 import org.bonitasoft.engine.exception.DeletionException;
 import org.bonitasoft.forklift.ForkliftAPI;
 import org.bonitasoft.forklift.ForkliftAPI.BonitaAccessor;
-import org.bonitasoft.forklift.ForkliftAPI.ResultSynchronization;
-import org.bonitasoft.forklift.artefact.Artefact.DeployOperation;
-import org.bonitasoft.forklift.artefact.Artefact.DetectionStatus;
 import org.bonitasoft.forklift.source.Source;
 import org.bonitasoft.log.event.BEvent;
-import org.bonitasoft.log.event.BEventFactory;
 import org.bonitasoft.log.event.BEvent.Level;
 
 public class ArtefactProcess extends Artefact {

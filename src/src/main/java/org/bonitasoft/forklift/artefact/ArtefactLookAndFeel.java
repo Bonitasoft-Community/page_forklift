@@ -3,15 +3,9 @@ package org.bonitasoft.forklift.artefact;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.bonitasoft.forklift.ForkliftAPI.BonitaAccessor;
-import org.bonitasoft.forklift.ForkliftAPI.ResultSynchronization;
-import org.bonitasoft.forklift.artefact.Artefact.DeployOperation;
-import org.bonitasoft.forklift.artefact.Artefact.DeploymentStatus;
-import org.bonitasoft.forklift.artefact.Artefact.DetectionStatus;
 import org.bonitasoft.forklift.source.Source;
 import org.bonitasoft.log.event.BEvent;
 

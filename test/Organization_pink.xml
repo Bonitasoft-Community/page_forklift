@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><organization:Organization xmlns:organization="http://documentation.bonitasoft.com/organization-xml-schema/1.1">
+  <customUserInfoDefinitions/>
+  <users>
+    <user userName="Fabrice.Lucini">
+      <password encrypted="true">LcTkpvvquKf4KO+prsfXrQ==</password>
+      <firstName>Fabrice</firstName>
+      <lastName>Lucini</lastName>
+      <title>Mr</title>
+      <jobTitle>Actor</jobTitle>
+      <enabled>true</enabled>
+      <personalData/>
+      <professionalData>
+        <address>Renwick Drive</address>
+        <building>70</building>
+        <city>Philadelphia</city>
+        <country>United States</country>
+        <email>fabrice.lucini@acme.com</email>
+        <faxNumber>484-302-0295</faxNumber>
+        <phoneNumber>484-302-5295</phoneNumber>
+        <state>PA</state>
+        <zipCode>19108</zipCode>
+      </professionalData>
+      <customUserInfoValues/>
+      <manager>daniela.angelo</manager>
+    </user>
+
+  </users>
+  <roles>
+    <role name="actormovie">
+      <displayName>Actor Movie</displayName>
+      <description/>
+    </role>
+  </roles>
+  <groups>
+    <group name="hollywood" parentPath="/acme">
+      <displayName>Hollywood</displayName>
+      <description>This group represents Actor which make a movie in Hollywood</description>
+    </group>
+
+  </groups>
+  <memberships>
+    <membership>
+      <userName>Fabrice.Lucini</userName>
+      <roleName>member</roleName>
+      <groupName>acme</groupName>
+      <groupParentPath/>
+    </membership>
+    <membership>
+      <userName>Fabrice.Lucini</userName>
+      <roleName>actormovie</roleName>
+      <groupName>hollywood</groupName>
+      <groupParentPath>/acme</groupParentPath>
+    </membership>
+    
+  </memberships>
+</organization:Organization>

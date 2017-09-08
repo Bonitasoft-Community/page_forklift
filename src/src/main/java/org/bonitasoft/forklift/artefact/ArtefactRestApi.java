@@ -1,21 +1,15 @@
 package org.bonitasoft.forklift.artefact;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.bonitasoft.forklift.ForkliftAPI.BonitaAccessor;
-import org.bonitasoft.forklift.ForkliftAPI.ResultSynchronization;
 import org.bonitasoft.forklift.artefact.Artefact.DeployOperation;
-import org.bonitasoft.forklift.artefact.Artefact.DeploymentStatus;
-import org.bonitasoft.forklift.artefact.Artefact.DetectionStatus;
 import org.bonitasoft.forklift.source.Source;
 import org.bonitasoft.log.event.BEvent;
+import org.bonitasoft.log.event.BEvent.Level;
 
-public class ArtefactRestApi extends Artefact {
+public class ArtefactRestApi extends ArtefactResource {
+	protected static BEvent EventDeploymentRestFailed = new BEvent(ArtefactRestApi.class.getName(), 1, Level.APPLICATIONERROR, "Rest deployment Error", "The Rest API is deployed but will failed", "The call will return a 403", "Upload manualy the restApi");
 
 	public String name;
 	public String version;
@@ -25,25 +19,21 @@ public class ArtefactRestApi extends Artefact {
 		super( "restapi", name, version, description, dateCreation, sourceOrigin);
 	}
 
-
-	public List<BEvent> loadFromFile(File file) {
-		return new ArrayList<BEvent>();
-	}
-
 	@Override
-	public DeployOperation detectDeployment(BonitaAccessor bonitaAccessor)
-	{
-		DeployOperation deployOperation = new DeployOperation();
-		deployOperation.detectionStatus= DetectionStatus.SAME;
-		return deployOperation;
+	public String getContentType() {
+		return "apiExtension";
 	}
-	
-	
+
+
 	@Override
 	public DeployOperation deploy(BonitaAccessor bonitaAccessor) {
-		DeployOperation deployOperation = new DeployOperation();
-		deployOperation.deploymentStatus= DeploymentStatus.DEPLOYEDFAILED;
+		DeployOperation deployOperation = super.deploy(bonitaAccessor);
+		if (deployOperation.deploymentStatus == DeploymentStatus.DEPLOYED)
+		{
+			// in fact, no ! See https://bonitasoft.atlassian.net/browse/BS-16862
+			deployOperation.deploymentStatus = DeploymentStatus.DEPLOYEDFAILED;
+			deployOperation.listEvents.add( EventDeploymentRestFailed);
+		}
 		return deployOperation;
 	}
-
 }

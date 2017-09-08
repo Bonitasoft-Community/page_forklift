@@ -97,16 +97,8 @@ public class Index implements PageController {
 
             
 			APISession apiSession = pageContext.getApiSession()
-			ProcessAPI processAPI = TenantAPIAccessor.getProcessAPI(apiSession);
-			IdentityAPI identityAPI = TenantAPIAccessor.getIdentityAPI(apiSession);
-			ProfileAPI profileAPI = TenantAPIAccessor.getProfileAPI(apiSession);
-			
-			BonitaAccessor bonitaAccessor= new BonitaAccessor();
-          	bonitaAccessor.apiSession = apiSession;
-          	bonitaAccessor.processAPI = processAPI;
-          	bonitaAccessor.identityAPI = identityAPI;
-          	bonitaAccessor.profileAPI = profileAPI;
-        
+			BonitaAccessor bonitaAccessor= new BonitaAccessor( apiSession );
+            
 			ForkliftAPI forkliftAPI = ForkliftAPI.getInstance();
              
 			List<BEvent> listEvents=new ArrayList<BEvent>();

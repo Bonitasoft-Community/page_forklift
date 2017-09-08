@@ -127,15 +127,16 @@
 			<!--  --------------------------------------------------------- Content -->
 			<legend class="text-primary">Content</legend>
 	
-			<input type="checkbox" ng-model="forkliftctrl.config.content.organization" 	ng-disable="1==1">Organization</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.layout"  		ng-disable="1==1">Layout</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.theme"    		ng-disable="1==1">Theme</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.pages"     	ng-disable="1==1">Pages</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.restapi"		ng-disable="1==1">RestAPI</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.profile"		>Profiles</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.livingapp"		ng-disable="1==1">Living Application</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.bdm"			ng-disable="1==1">Business Data Model</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.layout"  		>Layout</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.theme"    		>Theme</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.lookandfeel" 	>Look and feel</input>
+			<!-- <input type="checkbox" ng-model="forkliftctrl.config.content.bdm"			ng-disabled="1==1">Business Data Model</input>-->			
+			<input type="checkbox" ng-model="forkliftctrl.config.content.organization" 	>Organization</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.restapi"		>RestAPI</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.pages"     	>Pages</input>
 			<input type="checkbox" ng-model="forkliftctrl.config.content.process"		>Process</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.profile"		>Profiles</input>
+			<input type="checkbox" ng-model="forkliftctrl.config.content.livingapp"		>Living Application</input>
 			<button ng-click="forkliftctrl.checkContent( true )"  class="btn btn-info btn-xs" >Check All</button>			
 			
 			
@@ -160,8 +161,23 @@
 			</span>
 			<button ng-click="forkliftctrl.synchronisationDetect()"  class="btn btn-info" ng-disabled="forkliftctrl.synchronisation.wait">Detection</button><p>
 		</center>
+		
+		<!--  what to display -->
+		<div class="label label-info">
+		Show:
+		<input type="checkbox" ng-model="forkliftctrl.showartefact.layout">Layout</input>
+		<input type="checkbox" ng-model="forkliftctrl.showartefact.theme">Theme</input>
+		<input type="checkbox" ng-model="forkliftctrl.showartefact.lookandfeel">Look and feel</input>
+		<!--  <input type="checkbox" ng-model="forkliftctrl.showartefact.bdm">BDM</input> -->
+		<input type="checkbox" ng-model="forkliftctrl.showartefact.organization">Organization</input>
+		<input type="checkbox" ng-model="forkliftctrl.showartefact.restapi"		>RestAPI</input>
+		<input type="checkbox" ng-model="forkliftctrl.showartefact.pages"     	>Pages</input>
+		<input type="checkbox" ng-model="forkliftctrl.showartefact.process"		>Process</input>
+		<input type="checkbox" ng-model="forkliftctrl.showartefact.profile"		>Profiles</input>
+		<input type="checkbox" ng-model="forkliftctrl.showartefact.livingapp"	>Living Application</input>
+		</div>
 		<table class="table table-striped table-hover table-condensed">
-			<tr>
+			<tr >
 				<th>Type</th>
 				<th>Name</th>
 				<th>Version</th>
@@ -171,8 +187,8 @@
 				<th style="background:#fcf8e3">Deployed date</th>
 				<th colspan="2">Decision</th>
 			</tr>
-			
-			<tr ng-repeat="item in forkliftctrl.synchronisation.detection.items track by $index">
+			<tbody ng-repeat="item in forkliftctrl.getItems() track by $index">
+			<tr >
 				<td>{{item.type}}</td>
 				<td>{{item.name}}</td>
 				<td>{{item.version}}</td>
@@ -212,6 +228,7 @@
 				</td>
 				
 			</tr>
+			</tbody>
 		</table>
 		<center>
 			<span ng-show="forkliftctrl.synchronisation.wait"> 
@@ -224,7 +241,7 @@
 		<div ng-bind-html="forkliftctrl.getListEvents(forkliftctrl.synchronisation.listevents)"></div>
 		<textarea ng-model="forkliftctrl.synchronisation.report" rows="20" style="width:100%;" readonly></textarea>
 		<p>
-		Forklift={{forkliftctrl.synchronisation}}
+
 	
 
 </div>

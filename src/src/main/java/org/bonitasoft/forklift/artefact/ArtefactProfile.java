@@ -1,33 +1,22 @@
 package org.bonitasoft.forklift.artefact;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.bonitasoft.engine.api.ProfileAPI;
-import org.bonitasoft.engine.profile.ImportPolicy;
 import org.bonitasoft.engine.profile.Profile;
 import org.bonitasoft.engine.search.SearchOptionsBuilder;
 import org.bonitasoft.engine.search.SearchResult;
 import org.bonitasoft.forklift.ForkliftAPI;
 import org.bonitasoft.forklift.ForkliftAPI.BonitaAccessor;
-import org.bonitasoft.forklift.ForkliftAPI.ResultSynchronization;
-import org.bonitasoft.forklift.artefact.Artefact.DeployOperation;
-import org.bonitasoft.forklift.artefact.Artefact.DeploymentStatus;
-import org.bonitasoft.forklift.artefact.Artefact.DetectionStatus;
 import org.bonitasoft.forklift.source.Source;
 import org.bonitasoft.log.event.BEvent;
-import org.bonitasoft.log.event.BEventFactory;
 import org.bonitasoft.log.event.BEvent.Level;
 
 public class ArtefactProfile extends Artefact {

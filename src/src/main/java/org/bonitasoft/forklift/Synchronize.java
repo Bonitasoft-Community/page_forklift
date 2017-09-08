@@ -1,12 +1,13 @@
 package org.bonitasoft.forklift;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bonitasoft.engine.api.IdentityAPI;
-import org.bonitasoft.engine.api.ProcessAPI;
 import org.bonitasoft.forklift.ForkliftAPI.BonitaAccessor;
 import org.bonitasoft.forklift.ForkliftAPI.ConfigurationSet;
 import org.bonitasoft.forklift.ForkliftAPI.ResultSynchronization;
@@ -14,11 +15,21 @@ import org.bonitasoft.forklift.artefact.Artefact;
 import org.bonitasoft.forklift.artefact.Artefact.Action;
 import org.bonitasoft.forklift.artefact.Artefact.DeployOperation;
 import org.bonitasoft.forklift.artefact.Artefact.DeploymentStatus;
+import org.bonitasoft.forklift.artefact.Artefact.DetectionStatus;
+import org.bonitasoft.forklift.artefact.ArtefactBDM;
+import org.bonitasoft.forklift.artefact.ArtefactLayout;
+import org.bonitasoft.forklift.artefact.ArtefactLivingApplication;
+import org.bonitasoft.forklift.artefact.ArtefactLookAndFeel;
+import org.bonitasoft.forklift.artefact.ArtefactOrganization;
+import org.bonitasoft.forklift.artefact.ArtefactPage;
+import org.bonitasoft.forklift.artefact.ArtefactProcess;
+import org.bonitasoft.forklift.artefact.ArtefactProfile;
+import org.bonitasoft.forklift.artefact.ArtefactRestApi;
+import org.bonitasoft.forklift.artefact.ArtefactTheme;
 import org.bonitasoft.forklift.source.Source;
-import org.bonitasoft.forklift.source.SourceDirectory;
 import org.bonitasoft.log.event.BEvent;
-import org.bonitasoft.log.event.BEventFactory;
 import org.bonitasoft.log.event.BEvent.Level;
+import org.bonitasoft.log.event.BEventFactory;
 
 public class Synchronize {
 
@@ -46,6 +57,10 @@ public class Synchronize {
 		for (Source source : configurationSet.listSources) {
 			resultSynchronization.addReport("Source " + source.getName());
 			List<Artefact> listArtefact = source.getListArtefactDetected();
+			
+			orderArtefacts( listArtefact);
+
+			
 			for (Artefact artefact : listArtefact) {
 				// if the configuration allow this artefact ?
 				if (configurationSet.isContentAllow(artefact)) {
@@ -53,28 +68,52 @@ public class Synchronize {
 					numberPerContent.put(artefact.getTypeId(), nb==null ? 1L : nb+1);
 					
 					resultSynchronization.addReport("  Deploy " + artefact.getTypeId() + " " + artefact.getName());
-					DeployOperation deployAnalysis = artefact.detectDeployment(bonitaAccessor);
-					resultSynchronization.addErrorsEvent(deployAnalysis.listEvents);
-					resultSynchronization.addReport(deployAnalysis.report);
-					deployAnalysis.artefact = artefact; // to be sure
+					DeployOperation deployOperation = artefact.detectDeployment(bonitaAccessor);
+					if (deployOperation.detectionStatus==null)
+					{
+						// create one analysis
+						if (deployOperation.presentDateArtefact==null)
+						{
+							deployOperation.detectionStatus= DetectionStatus.NEWARTEFAC;
+							deployOperation.report="The artefact is new, deploy this version";
+						}
+						else if (deployOperation.presentDateArtefact!=null && deployOperation.presentDateArtefact.equals(artefact.getDate()))
+						{
+							deployOperation.detectionStatus= DetectionStatus.SAME;
+							deployOperation.report="A version exist with the same date ("+ForkliftAPI.sdf.format( artefact.getDate())+")";
+						}
+						else if ( deployOperation.presentDateArtefact.before(artefact.getDate()))
+						{
+							deployOperation.detectionStatus= DetectionStatus.NEWVERSION;
+							deployOperation.report="The version is new";
+						}
+						else
+						{
+							deployOperation.detectionStatus= DetectionStatus.OLDVERSION;
+							deployOperation.report="The version is older, you should ignore this one";
+						}
+					}
+					resultSynchronization.addErrorsEvent(deployOperation.listEvents);
+					resultSynchronization.addReport(deployOperation.report);
+					deployOperation.artefact = artefact; // to be sure
 					
 					// calculate the appropriate decision
-					switch (deployAnalysis.detectionStatus)
+					switch (deployOperation.detectionStatus)
 					{
 					case NEWARTEFAC:
 					case NEWVERSION:
-						deployAnalysis.action= Action.DEPLOY;
+						deployOperation.action= Action.DEPLOY;
 						break;
 					case OLDVERSION:
 					case SAME:
-						deployAnalysis.action= Action.DELETE;
+						deployOperation.action= Action.DELETE;
 						break;
 					case DETECTIONFAILED:
-						deployAnalysis.action= Action.IGNORE;
+						deployOperation.action= Action.IGNORE;
 						break;
 					}
 					
-					resultSynchronization.addDetection( deployAnalysis);
+					resultSynchronization.addDetection( deployOperation );
 				}
 			}
 		}
@@ -122,6 +161,10 @@ public class Synchronize {
 		for (Source source : configurationSet.listSources) {
 			resultSynchronization.addReport("Source " + source.getName());
 			List<Artefact> listArtefact = source.getListArtefactDetected();
+			
+			orderArtefacts( listArtefact);
+
+			
 			for (Artefact artefact : listArtefact) {
 				countDetectArtefact++;
 				
@@ -242,7 +285,7 @@ public class Synchronize {
 		resultSynchronization.addReport("  Detected artefacts      : "+countDetectArtefact);
 		resultSynchronization.addReport("  Deployment with success : "+countDeployArtefactWithSuccess);
 		resultSynchronization.addReport("  Deployment failed       : "+countDeployArtefactFailed);
-		resultSynchronization.addReport("  Deploymen ignored       : "+countDeployArtefactIgnored);
+		resultSynchronization.addReport("  Deployment ignored      : "+countDeployArtefactIgnored);
 
 		resultSynchronization.addReport("Synchronisation End at "+ForkliftAPI.sdf.format( new Date())+" in ");
 
@@ -256,6 +299,46 @@ public class Synchronize {
 		if (o1!=null && o2!=null)
 			return o1.equals(o2);
 		return false;
+	}
+	
+	private void orderArtefacts(List<Artefact> listArtefact)
+	{
+		final List<Class> listOrder = new ArrayList<Class>();
+		listOrder.add(ArtefactLayout.class);
+		listOrder.add(ArtefactTheme.class);
+		listOrder.add(ArtefactLookAndFeel.class);
+
+		listOrder.add(ArtefactBDM.class);
+
+		listOrder.add(ArtefactOrganization.class);
+		listOrder.add(ArtefactRestApi.class);
+		listOrder.add(ArtefactPage.class);
+		listOrder.add(ArtefactProcess.class);
+		listOrder.add(ArtefactProfile.class);
+		
+		listOrder.add(ArtefactLivingApplication.class);
+		
+		// Attention, deployment must be done in a certain order
+		 Collections.sort(listArtefact, new Comparator<Artefact>()
+		    {
+		      public int compare(Artefact s1,
+		    		  Artefact s2)
+		      {
+		    	  int rangeS1=0;
+		    	  int rangeS2=0;
+		    	  
+		    	  for (int i=0;i<listOrder.size();i++)
+		    	  {
+		    		  if (listOrder.get(i).equals(s1.getClass()))
+		    			  rangeS1=i;
+		    		  if (listOrder.get(i).equals(s2.getClass()))
+		    			  rangeS2=i;
+		    	  }
+		    	  if (rangeS1 != rangeS2)
+		    		  return Integer.valueOf( rangeS1 ).compareTo( rangeS2 );
+		    	  return s1.getName().compareTo(s2.getName());
+		      }
+		    });
 	}
 
 }

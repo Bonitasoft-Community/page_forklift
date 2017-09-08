@@ -3,13 +3,15 @@ package org.bonitasoft.forklift;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.bonitasoft.engine.api.ApplicationAPI;
 import org.bonitasoft.engine.api.IdentityAPI;
+import org.bonitasoft.engine.api.OrganizationAPI;
+import org.bonitasoft.engine.api.PageAPI;
 import org.bonitasoft.engine.api.ProcessAPI;
 import org.bonitasoft.engine.api.ProfileAPI;
 import org.bonitasoft.engine.api.TenantAPIAccessor;
@@ -17,14 +19,11 @@ import org.bonitasoft.engine.session.APISession;
 import org.bonitasoft.ext.properties.BonitaProperties;
 import org.bonitasoft.forklift.artefact.Artefact;
 import org.bonitasoft.forklift.artefact.Artefact.DeployOperation;
-import org.bonitasoft.forklift.artefact.ArtefactProcess;
-import org.bonitasoft.forklift.source.SourceDirectory;
-import org.json.simple.JSONValue;
-
 import org.bonitasoft.forklift.source.Source;
 import org.bonitasoft.log.event.BEvent;
-import org.bonitasoft.log.event.BEventFactory;
 import org.bonitasoft.log.event.BEvent.Level;
+import org.bonitasoft.log.event.BEventFactory;
+import org.json.simple.JSONValue;
 
 public class ForkliftAPI {
 
@@ -55,6 +54,26 @@ public class ForkliftAPI {
 		public ProcessAPI processAPI;
 		public IdentityAPI identityAPI;
 		public ProfileAPI profileAPI;
+		public PageAPI pageAPI;
+		public ApplicationAPI applicationAPI;
+		public OrganizationAPI organisationAPI;
+		
+		public BonitaAccessor( APISession apiSession) {
+			this.apiSession = apiSession;
+			try
+			{
+				this.processAPI = TenantAPIAccessor.getProcessAPI(apiSession);
+				this.identityAPI = TenantAPIAccessor.getIdentityAPI(apiSession);
+				this.profileAPI = TenantAPIAccessor.getProfileAPI(apiSession);
+				this.pageAPI = TenantAPIAccessor.getCustomPageAPI(apiSession);
+				this.applicationAPI = TenantAPIAccessor.getLivingApplicationAPI(apiSession);
+				this.organisationAPI =TenantAPIAccessor.getIdentityAPI(apiSession);
+				
+			}
+			catch( Exception e)
+			{
+			}
+		}
 		
 		public ProfileAPI getProfileAPI()
 		{
