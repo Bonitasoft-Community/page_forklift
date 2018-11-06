@@ -39,6 +39,10 @@
 </style>
 
 </head>
+
+
+<!--  Page Directory: @_PAGEDIRECTORY_@ -->
+
 <body ng-app="forkliftmonitor">
 
 <div class="col-lg-12"  ng-controller="ForkLiftControler as forkliftctrl">
@@ -46,10 +50,11 @@
 	<div class="bs-component" >
 		<center>
 		<table><tr><td><h1>Forklift</h1></td><td rowspan="2"><img src="pageResource?page=custompage_forklift&location=img/forklift.jpg" width="150" heigth="150" /></td></tr>
-			<tr><td style="font-size:0.8em"> <a href="" ng-click="forkliftctrl.showhistory( ! forkliftctrl.isshowhistory )">V1.0</a></td></tr>
+			<tr><td style="font-size:0.8em"> <a href="" ng-click="forkliftctrl.showhistory( ! forkliftctrl.isshowhistory )">V1.1</a></td></tr>
 			<tr><td>
 			<div id="showHistory" ng-show="forkliftctrl.isshowhistory" style="border-width:2px;border-style:ridge;border-color:blue">
 			1.0 First version<br>
+			1.1 Ready for 7.7<br>
 			</div>
 				
 			</td></tr>
@@ -197,10 +202,10 @@
 				<td style="background:#fcf8e3">{{item.presentversion}}</td>
 				<td style="background:#fcf8e3">{{item.presentdate}}</td>
 				<td>
-					<span ng-show="item.detectionstatus=='NEWARTEFAC'" class="label label-success">New</span>
-					<span ng-show="item.detectionstatus=='SAME'"       class="label label-Warning">same</span>
-					<span ng-show="item.detectionstatus=='OLDVERSION'" class="label label-danger">Old version</span>
-					<span ng-show="item.detectionstatus=='NEWVERSION'" class="label label-success">New</span>
+					<span ng-show="item.detectionstatus=='NEWARTEFAC'" class="label label-success">New Artefact</span>
+					<span ng-show="item.detectionstatus=='SAME'"       class="label label-Warning">Same</span>
+					<span ng-show="item.detectionstatus=='OLDVERSION'" class="label label-danger">Old Version</span>
+					<span ng-show="item.detectionstatus=='NEWVERSION'" class="label label-info">New</span>
 				</td>
 					
 				<td>
@@ -265,7 +270,7 @@
 
 
 <!-- Application dependencies -->
-<script src="pageResource?page=custompage_forklift&location=forkliftmonitor.js"></script>
+<script src="pageResource?page=custompage_forklift&location=forkliftmonitor.js&v=@_CURRENTTIMEMILIS_@"></script>
 
 </body>
 </html>

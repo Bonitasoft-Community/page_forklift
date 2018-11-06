@@ -61,7 +61,7 @@ appCommand.controller('ForkLiftControler',
 		this.config.listevents='';
 		this.config.wait=true;
 		var self=this;
-		$http.get( '?page=custompage_forklift&action=loadConfiguration' )
+		$http.get( '?page=custompage_forklift&action=loadConfiguration&t='+Date.now()  )
 		.success( function ( jsonResult ) {
 			self.config.wait=false;
 			self.config.sources = jsonResult.sources;
@@ -95,7 +95,7 @@ appCommand.controller('ForkLiftControler',
 		this.config.listevents='';
 		this.config.wait=true;
 		var self=this;
-		$http.get( '?page=custompage_forklift&action=saveConfiguration&paramjson='+json )
+		$http.get( '?page=custompage_forklift&action=saveConfiguration&paramjson='+json+'&t='+Date.now()  )
 			.success( function ( jsonResult ) {
 				self.config.wait=false;
 				self.config.listevents= jsonResult.listevents; 
@@ -136,7 +136,7 @@ appCommand.controller('ForkLiftControler',
 		self.synchronisation.wait=true;
 		self.synchronisation.listevents='';
 		self.synchronisation.report='';
-		$http.get( '?page=custompage_forklift&action=synchronisationdetect' )
+		$http.get( '?page=custompage_forklift&action=synchronisationdetect'+'&t='+Date.now()  )
 			.success( function ( jsonResult ) {
 				self.synchronisation.wait=false;
 				self.synchronisation.listevents= jsonResult.listevents;
@@ -172,7 +172,7 @@ appCommand.controller('ForkLiftControler',
 		
 		var json = encodeURI( angular.toJson( listDeploy, false));
 		
-		$http.get( '?page=custompage_forklift&action=synchronisationexecute&paramjson='+json )
+		$http.get( '?page=custompage_forklift&action=synchronisationexecute&paramjson='+json+'&t='+Date.now()  )
 			.success( function ( jsonResult ) {
 				self.synchronisation.wait=false;
 				self.synchronisation.listevents= jsonResult.listevents;
@@ -281,7 +281,7 @@ appCommand.controller('ForkLiftControler',
 
 		var self=this;
 
-		$http.get( '?page=custompage_forklift&action=ping' )
+		$http.get( '?page=custompage_forklift&action=ping&t='+Date.now()  )
 				.success( function ( jsonResult ) {
 						console.log("history",jsonResult);
 						self.pingdate 		= jsonResult.pingcurrentdate;
