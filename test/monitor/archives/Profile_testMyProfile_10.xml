@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><profiles:profiles xmlns:profiles="http://www.bonitasoft.org/ns/profile/6.1">
+  <profile isDefault="false" name="testmyprofile">
+    <description/>
+    <profileEntries>
+      <parentProfileEntry isCustom="true" name="meteor">
+        <parentName>NULL</parentName>
+        <index>0</index>
+        <description>Create, Execute task on process</description>
+        <type>link</type>
+        <page>custompage_meteor</page>
+      </parentProfileEntry>
+      <parentProfileEntry isCustom="false" name="my task">
+        <parentName>NULL</parentName>
+        <index>2</index>
+        <description>visualize &amp; do tasks</description>
+        <type>link</type>
+        <page>tasklistinguser</page>
+      </parentProfileEntry>
+    </profileEntries>
+    <profileMapping>
+      <users>
+        <user>walter.bates</user>
+        <user>daniela.angelo</user>
+      </users>
+    </profileMapping>
+  </profile>
+</profiles:profiles>

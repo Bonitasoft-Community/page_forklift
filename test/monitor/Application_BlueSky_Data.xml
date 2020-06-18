@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<applications xmlns="http://documentation.bonitasoft.com/application-xml-schema/1.0">
+    <application token="bluesky" version="1.0" profile="testmyprofile" homePage="home" state="ACTIVATED" layout="custompage_greenLayout" theme="custompage_specialtheme">
+        <displayName>bluesky</displayName>
+        <description></description>
+        <iconPath></iconPath>
+        <applicationPages>
+            <applicationPage customPage="custompage_home" token="home"/>
+            <applicationPage customPage="custompage_meteor" token="meteor"/>
+            <applicationPage customPage="custompage_american" token="american"/>
+            <applicationPage customPage="custompage_orangePage" token="orange"/>
+        </applicationPages>
+        <applicationMenus>
+            <applicationMenu applicationPage="meteor">
+                <displayName>Meteor</displayName>
+            </applicationMenu>
+            <applicationMenu applicationPage="american">
+                <displayName>american</displayName>
+            </applicationMenu>
+            <applicationMenu applicationPage="orange">
+                <displayName>orange</displayName>
+            </applicationMenu>
+        </applicationMenus>
+    </application>
+</applications>
