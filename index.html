@@ -50,12 +50,8 @@
 	<div class="bs-component" >
 		<center>
 		<table><tr><td><h1>Forklift</h1></td><td rowspan="2"><img src="pageResource?page=custompage_forklift&location=img/forklift.jpg" width="150" heigth="150" /></td></tr>
-			<tr><td style="font-size:0.8em"> <a href="" ng-click="forkliftctrl.showhistory( ! forkliftctrl.isshowhistory )">V1.1</a></td></tr>
+			<tr><td style="font-size:0.8em"> V1.4</td></tr>
 			<tr><td>
-			<div id="showHistory" ng-show="forkliftctrl.isshowhistory" style="border-width:2px;border-style:ridge;border-color:blue">
-			1.0 First version<br>
-			1.1 Ready for 7.7<br>
-			</div>
 				
 			</td></tr>
 		</table>
@@ -79,7 +75,7 @@
 			<table class="table table-striped table-hover table-condensed">
 				<tbody ng-repeat="source in forkliftctrl.config.sources track by $index">
 				
-					<tr ng-show="source.type=='DIR'">
+					<tr ng-show="source.type=='Dir'">
 						<td>
 							<span class="explanation">All files behind this directory is immediately loaded</span><p>
 							Directory: <input type="text" ng-model="source.directory" size="60">
@@ -89,7 +85,7 @@
 						</td>
 					</tr>
 					
-					<tr ng-show="source.type=='BONITA'">
+					<tr ng-show="source.type=='Bonita'">
 						<td>
 							<span class="explanation">The external Bonita Server is called, and the artefacts are compare to the local server. All new artefact are loaded.</span><p>
 							<table>
@@ -118,7 +114,7 @@
 			</select>
 			<button ng-click="forkliftctrl.addOneSource( forkliftctrl.config.toadd )"  class="btn btn-primary btn-xs"  ng-disabled="forkliftctrl.config.wait">Add</button>
 			
-			<!--  --------------------------------------------------------- Frequency -->
+			<!--  --------------------------------------------------------- Frequency 
 			<legend class="text-primary">Frequency</legend>
 			<input type="checkbox" ng-model="forkliftctrl.frequency.active">Active<p>
 			<span class="explanation">Active and fix the frequency of the verification</span><p>
@@ -127,7 +123,7 @@
 			Hours <input type="number" ng-model="forkliftctrl.frequency.hours" ng-disabled="!forkliftctrl.frequency.active" size="3">
 			Minutes <input type="number" ng-model="forkliftctrl.frequency.minutes" ng-disabled="!forkliftctrl.frequency.active" size="3">
 			Seconds <input type="number" ng-model="forkliftctrl.frequency.secondes" ng-disabled="!forkliftctrl.frequency.active" size="3">
-			
+			-->
 			
 			<!--  --------------------------------------------------------- Content -->
 			<legend class="text-primary">Content</legend>

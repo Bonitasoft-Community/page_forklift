@@ -15,19 +15,19 @@ var appCommand = angular.module('forkliftmonitor', ['googlechart', 'ui.bootstrap
 
 // --------------------------------------------------------------------------
 //
-// Controler Ping
+// Controler Forklift
 //
 // --------------------------------------------------------------------------
 
-// Ping the server
 appCommand.controller('ForkLiftControler',
 	function ( $http, $scope, $sce ) {
 
 	this.isshowhistory=false;
 	this.showsources=false;
+	// , {'name':'Bonita server', 'type':'BONITA'}
 	this.config = { 'sources':[],
 					'content': {},
-					'options' : [ {'name':'Directory', 'type':'DIR'}, {'name':'Bonita server', 'type':'BONITA'}],
+					'options' : [ {'name':'Directory', 'type':'DIR'}], 
 					'toadd': 'DIR',
 					
 	}
@@ -62,22 +62,27 @@ appCommand.controller('ForkLiftControler',
 		this.config.wait=true;
 		var self=this;
 		$http.get( '?page=custompage_forklift&action=loadConfiguration&t='+Date.now()  )
-		.success( function ( jsonResult ) {
-			self.config.wait=false;
-			self.config.sources = jsonResult.sources;
-			if (! self.config.sources)
-				self.config.sources=[];
-			if (self.config.sources.length==0)
-				self.showsources=true;
-			
-			self.config.content = jsonResult.content;
-			if (!self.config.content)
-				self.config.content={};
-			self.config.listevents= jsonResult.listevents; 
-		})
-		.error( function ( jsonResult ) {
-			self.config.wait=false;
-		});
+			.success( function ( jsonResult, statusHttp, headers, config ) {
+				// connection is lost ?
+				if (statusHttp==401 || typeof jsonResult === 'string') {
+					console.log("Redirected to the login page !");
+					window.location.reload();
+				}
+				self.config.wait=false;
+				self.config.sources = jsonResult.sources;
+				if (! self.config.sources)
+					self.config.sources=[];
+				if (self.config.sources.length==0)
+					self.showsources=true;
+				
+				self.config.content = jsonResult.content;
+				if (!self.config.content)
+					self.config.content={};
+				self.config.listevents= jsonResult.listevents; 
+			})
+			.error( function ( jsonResult ) {
+				self.config.wait=false;
+			});
 	
 	}
 	this.loadConfiguration();
@@ -96,7 +101,12 @@ appCommand.controller('ForkLiftControler',
 		this.config.wait=true;
 		var self=this;
 		$http.get( '?page=custompage_forklift&action=saveConfiguration&paramjson='+json+'&t='+Date.now()  )
-			.success( function ( jsonResult ) {
+			.success( function ( jsonResult, statusHttp, headers, config ) {
+				// connection is lost ?
+				if (statusHttp==401 || typeof jsonResult === 'string') {
+					console.log("Redirected to the login page !");
+					window.location.reload();
+				}
 				self.config.wait=false;
 				self.config.listevents= jsonResult.listevents; 
 			})
@@ -105,7 +115,7 @@ appCommand.controller('ForkLiftControler',
 			});
 	}
 		
-	this.checkContent = function( checkPlease)
+	this.checkContent = function( checkPlease )
 	{
 		//this.config.content.organization=checkPlease;
 		//this.config.content.layout=checkPlease;
@@ -117,7 +127,8 @@ appCommand.controller('ForkLiftControler',
 		//this.config.content.bdm=checkPlease;
 		this.config.content.process=checkPlease;
 	}
-		
+	// default : check all
+	this.checkContent( true );
 	
 
 	// -------------------------------------
@@ -125,9 +136,9 @@ appCommand.controller('ForkLiftControler',
 	// -------------------------------------
 	this.synchronisation={ 'wait': false, 'listevents':'', 'report':''};
 	this.synchronisation.actions = [
-		{ 'type': 'DEPLOY', 'name':'Deploy'},
-		{ 'type': 'IGNORE', 'name':'Ignore'},
-		{ 'type': 'DELETE', 'name':'Delete'}
+		{ 'type': 'DEPLOY', 'name':'Deploy artifact on server, then archive artifact'},
+		{ 'type': 'IGNORE', 'name':'Ignore, do nothing'},
+		{ 'type': 'DELETE', 'name':'Archive artifact, no change on server'}
 		];
 	
 	this.synchronisationDetect = function()
@@ -137,7 +148,12 @@ appCommand.controller('ForkLiftControler',
 		self.synchronisation.listevents='';
 		self.synchronisation.report='';
 		$http.get( '?page=custompage_forklift&action=synchronisationdetect'+'&t='+Date.now()  )
-			.success( function ( jsonResult ) {
+			.success( function ( jsonResult, statusHttp, headers, config ) {
+				// connection is lost ?
+				if (statusHttp==401 || typeof jsonResult === 'string') {
+					console.log("Redirected to the login page !");
+					window.location.reload();
+				}
 				self.synchronisation.wait=false;
 				self.synchronisation.listevents= jsonResult.listevents;
 				self.synchronisation.detection= jsonResult.detection;
@@ -173,7 +189,13 @@ appCommand.controller('ForkLiftControler',
 		var json = encodeURI( angular.toJson( listDeploy, false));
 		
 		$http.get( '?page=custompage_forklift&action=synchronisationexecute&paramjson='+json+'&t='+Date.now()  )
-			.success( function ( jsonResult ) {
+			.success( function ( jsonResult, statusHttp, headers, config ) {
+				// connection is lost ?
+				if (statusHttp==401 || typeof jsonResult === 'string') {
+					console.log("Redirected to the login page !");
+					window.location.reload();
+				}
+				
 				self.synchronisation.wait=false;
 				self.synchronisation.listevents= jsonResult.listevents;
 				self.synchronisation.report= jsonResult.detection.report;
@@ -273,32 +295,7 @@ appCommand.controller('ForkLiftControler',
 		
 		return listdisplay;
 	}
-	this.ping = function()
-	{
-		$('#collectbtn').hide();
-		$('#collectwait').show();
-		this.pinginfo="Hello";
-
-		var self=this;
-
-		$http.get( '?page=custompage_forklift&action=ping&t='+Date.now()  )
-				.success( function ( jsonResult ) {
-						console.log("history",jsonResult);
-						self.pingdate 		= jsonResult.pingcurrentdate;
-						self.pinginfo 		= jsonResult.pingserverinfo;
-						self.listprocesses	= jsonResult.listprocesses;
-						$scope.chartObject		 	= JSON.parse(jsonResult.chartObject);
-
-						$('#collectbtn').show();
-						$('#collectwait').hide();
-				})
-				.error( function() {
-					alert('an error occure');
-						$('#collectbtn').show();
-						$('#collectwait').hide();
-					});
-
-	}
+	
 
 	// ------------------------------------------------------------------------------------------------------
 	// TOOLBOX

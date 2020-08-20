@@ -1,6 +1,6 @@
 package org.bonitasoft.forklift;
 
-import java.lang.reflect.Method;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,24 +8,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.bonitasoft.engine.api.ApplicationAPI;
-import org.bonitasoft.engine.api.IdentityAPI;
-import org.bonitasoft.engine.api.OrganizationAPI;
-import org.bonitasoft.engine.api.PageAPI;
-import org.bonitasoft.engine.api.ProcessAPI;
-import org.bonitasoft.engine.api.ProfileAPI;
-import org.bonitasoft.engine.api.TenantAPIAccessor;
-import org.bonitasoft.engine.session.APISession;
-import org.bonitasoft.properties.BonitaProperties;
 import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
 import org.bonitasoft.log.event.BEventFactory;
-import org.bonitasoft.store.BonitaStoreAccessor;
+import org.bonitasoft.properties.BonitaProperties;
 import org.bonitasoft.store.BonitaStore;
 import org.bonitasoft.store.BonitaStoreAPI;
+import org.bonitasoft.store.BonitaStoreAccessor;
+import org.bonitasoft.store.BonitaStoreDirectory;
 import org.bonitasoft.store.BonitaStoreFactory;
-import org.bonitasoft.store.artefact.Artefact;
-import org.bonitasoft.store.artefactdeploy.DeployStrategy.DeployOperation;
+import org.bonitasoft.store.artifact.Artifact;
+import org.bonitasoft.store.artifactdeploy.DeployStrategy.DeployOperation;
 import org.json.simple.JSONValue;
 
 public class ForkliftAPI {
@@ -49,14 +42,17 @@ public class ForkliftAPI {
 	
 
 	public static class ResultSynchronization {
-		private List<BEvent> listEvents  =new ArrayList<BEvent>();
+		private List<BEvent> listEvents  =new ArrayList<>();
 		private StringBuffer report= new StringBuffer();
 
-		private List<DeployOperation> listDeployAnalysis  =new ArrayList<DeployOperation>();
+		private List<DeployOperation> listDeployAnalysis  =new ArrayList<>();
 
 		public void addReport(String lineReport) {
-			report.append( lineReport).append( "\n");
+			report.append( lineReport);
 		}
+		public void addReportLine(String lineReport) {
+            report.append( lineReport).append( "\n");
+        }
 		public void addErrorEvent( BEvent errorEvent )
 		{
 			listEvents.add( errorEvent);
@@ -87,10 +83,10 @@ public class ForkliftAPI {
 			{
 				Map<String,Object> mapDeployItem = new HashMap<String,Object>();
 				listDeployItem.add(mapDeployItem);
-				mapDeployItem.put("type", deployAnalysis.artefact.getType().toString());
-				mapDeployItem.put("name", deployAnalysis.artefact.getName());
-				mapDeployItem.put("version", deployAnalysis.artefact.getVersion());
-				mapDeployItem.put("date", sdf.format( deployAnalysis.artefact.getDate()));
+				mapDeployItem.put("type", deployAnalysis.artifact.getType().toString());
+				mapDeployItem.put("name", deployAnalysis.artifact.getName());
+				mapDeployItem.put("version", deployAnalysis.artifact.getVersion());
+				mapDeployItem.put("date", sdf.format( deployAnalysis.artifact.getDate()));
 				if (deployAnalysis.deploymentStatus!=null)
 					mapDeployItem.put("deploystatus", deployAnalysis.deploymentStatus.toString());
 				if (deployAnalysis.detectionStatus!=null)
@@ -99,8 +95,8 @@ public class ForkliftAPI {
 				if (deployAnalysis.action!=null)
 					mapDeployItem.put("action", deployAnalysis.action.toString());
 				mapDeployItem.put("report", deployAnalysis.report);				
-				mapDeployItem.put("presentversion", deployAnalysis.presentVersionArtefact);
-				mapDeployItem.put("presentdate", (deployAnalysis.presentDateArtefact==null) ? null : sdf.format( deployAnalysis.presentDateArtefact));
+				mapDeployItem.put("presentversion", deployAnalysis.presentVersionArtifact);
+				mapDeployItem.put("presentdate", (deployAnalysis.presentDateArtifact==null) ? null : sdf.format( deployAnalysis.presentDateArtifact));
 				if (deployAnalysis.listEvents!=null)
 					mapDeployItem.put("listevents", BEventFactory.getHtml(deployAnalysis.listEvents) );
 					
@@ -211,13 +207,26 @@ public class ForkliftAPI {
 			return mapSet;
 		}
 
+		/**
+		 * This method is call from the configuration, oposite of the toJsonObject
+		 * @param configMap
+		 */
 		public void fromJsonObject(Map<String, Object> configMap) {
-			List listSourceOb = (List) configMap.get(cstConfigSources);
+			List<Map<String,Object>> listSourceOb = (List) configMap.get(cstConfigSources);
 			BonitaStoreAPI bonitaStoreAPI = BonitaStoreAPI.getInstance(); 
 			BonitaStoreFactory bonitaStoreFactory = bonitaStoreAPI.getBonitaStoreFactory();
-			for (Object sourceOb : (List) listSourceOb) {
-				BonitaStore source = bonitaStoreFactory.getBonitaStore((Map<String, Object>) sourceOb);
-				listSources.add(source);
+			for (Map<String,Object> source : listSourceOb) {
+			    BonitaStore store = bonitaStoreFactory.getBonitaStore(source);
+			    /*
+			    String type = Toolbox.getString(sourceOb.get(BonitaStoreType"type"), null);
+			    if ("DIR".equals(type))
+			    {
+			        File pathDirectory = new File(Toolbox.getString(sourceOb.get("directory"), null));
+			        source = bonitaStoreFactory.getDirectoryStore(pathDirectory, true);
+			    }
+			    */
+			    if (source!=null)
+			        listSources.add(store);
 			}
 			contentMap = (Map) configMap.get(cstConfigContent);
 			/*
@@ -233,15 +242,43 @@ public class ForkliftAPI {
 			 */
 		}
 
+		public final static String CST_JSON_TYPESOURCE= BonitaStore.CST_BONITA_STORE_TYPE;
+		public final static String CST_JSON_TYPESOURCE_DIR= BonitaStoreDirectory.CST_TYPE_DIR;
+		
+        
 		/**
-		 * administrator give the list of all artefact which can be
+		 * Configuration is load from the page
+		 * @param configMap
+		 */
+		  public void fromPage(Map<String, Object> configMap) {
+	            List<Map<String,Object>> listSourceOb = (List) configMap.get(cstConfigSources);
+	            BonitaStoreAPI bonitaStoreAPI = BonitaStoreAPI.getInstance(); 
+	            BonitaStoreFactory bonitaStoreFactory = bonitaStoreAPI.getBonitaStoreFactory();
+	            for (Map<String,Object> source : listSourceOb) {
+	                
+	                BonitaStore store=null;
+	                String type = Toolbox.getString(source.get( CST_JSON_TYPESOURCE ), null);
+	                if (CST_JSON_TYPESOURCE_DIR.equals(type))
+	                {
+	                    File pathDirectory = new File(Toolbox.getString(source.get("directory"), null));
+	                    store = bonitaStoreFactory.getDirectoryStore(pathDirectory, true);
+	                }
+	                
+	                if (source!=null)
+	                    listSources.add(store);
+	            }
+	            contentMap = (Map) configMap.get(cstConfigContent);
+		  }
+		  
+		/**
+		 * administrator give the list of all artifact which can be
 		 * synchronized.
 		 * 
 		 * @param artefact
 		 * @return
 		 */
-		public boolean isContentAllow(Artefact artefact) {
-			Boolean contentArtefact = (Boolean) contentMap.get(artefact.getType());
+		public boolean isContentAllow(Artifact artefact) {
+			Boolean contentArtefact = (Boolean) contentMap.get( artefact.getType().toString().toLowerCase() );
 			return (contentArtefact == null) ? false : contentArtefact;
 		}
 		public Map<String, Boolean> getContentAllow()

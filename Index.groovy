@@ -28,9 +28,12 @@ import java.sql.DatabaseMetaData;
 import org.apache.commons.lang3.StringEscapeUtils
 
 import org.bonitasoft.engine.identity.User;
-import org.bonitasoft.console.common.server.page.PageContext
-import org.bonitasoft.console.common.server.page.PageController
-import org.bonitasoft.console.common.server.page.PageResourceProvider
+
+import org.bonitasoft.web.extension.page.PageContext;
+import org.bonitasoft.web.extension.page.PageController;
+import org.bonitasoft.web.extension.page.PageResourceProvider;
+
+
 import org.bonitasoft.engine.exception.AlreadyExistsException;
 import org.bonitasoft.engine.exception.BonitaHomeNotSetException;
 import org.bonitasoft.engine.exception.CreationException;
@@ -64,10 +67,12 @@ import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEventFactory;
 import org.bonitasoft.log.event.BEvent.Level;
 
+import org.bonitasoft.store.BonitaStoreAccessor;
+
 import org.bonitasoft.forklift.ForkliftAPI;
 import org.bonitasoft.forklift.ForkliftAPI.ConfigurationSet;
 import org.bonitasoft.forklift.ForkliftAPI.ResultSynchronization;
-import org.bonitasoft.forklift.ForkliftAPI.BonitaAccessor;
+
 
 public class Index implements PageController {
 
@@ -97,7 +102,7 @@ public class Index implements PageController {
 
             
 			APISession apiSession = pageContext.getApiSession()
-			BonitaAccessor bonitaAccessor= new BonitaAccessor( apiSession );
+			BonitaStoreAccessor bonitaAccessor= new BonitaStoreAccessor( apiSession );
             
 			ForkliftAPI forkliftAPI = ForkliftAPI.getInstance();
              
@@ -106,13 +111,7 @@ public class Index implements PageController {
 			HashMap<String,Object> answer = null;
 
 			
-			if ("ping".equals(action))
-			{
-				answer = new HashMap<String,Object>();
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				answer.put("pingcurrentdate", sdf.format( new Date() ) );
-			}
-			else if ("synchronisationdetect".equals(action))
+			 if ("synchronisationdetect".equals(action))
 	        {
 	          	answer = new HashMap<String,Object>()
 	          	ConfigurationSet configurationSet= forkliftAPI.loadConfiguration("default", pageResourceProvider.getPageName(), apiSession.getTenantId());
@@ -161,7 +160,7 @@ public class Index implements PageController {
                 final Object jsonObject = JSONValue.parse(paramJsonSt);
                 Map jsonObjectMap = (Map) jsonObject;
                 ConfigurationSet configurationSet =new ConfigurationSet();
-                configurationSet.fromJsonObject( jsonObjectMap );
+                configurationSet.fromPage( jsonObjectMap );
                 listEvents= forkliftAPI.saveConfiguration( "default", configurationSet,  pageResourceProvider.getPageName(), apiSession.getTenantId());
             }
 			
