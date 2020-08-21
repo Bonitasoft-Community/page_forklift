@@ -1,5 +1,7 @@
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import javax.servlet.http.HttpSession;
+
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -96,7 +98,8 @@ public class Index implements PageController {
 				runTheBonitaIndexDoGet( request, response,pageResourceProvider,pageContext);
 				return;
 			}
-			
+            HttpSession httpSession = request.getSession();
+            
 			String paramJsonEncode= request.getParameter("paramjson");
             String paramJsonSt = (paramJsonEncode==null ? null : java.net.URLDecoder.decode(paramJsonEncode, "UTF-8"));
 
@@ -124,8 +127,17 @@ public class Index implements PageController {
 	        {
 	          	answer = new HashMap<String,Object>()
 	          	ConfigurationSet configurationSet= forkliftAPI.loadConfiguration("default", pageResourceProvider.getPageName(), apiSession.getTenantId());
-	            	
-	          	configurationSet.setActions( paramJsonSt );
+                  
+                String accumulateJson = (String) httpSession.getAttribute("accumulate" );
+                  
+                String paramJsonPartial = request.getParameter("paramjsonpartial");
+                if (paramJsonPartial !=null)
+                    accumulateJson+=paramJsonPartial;
+                    
+                logger.info("Forkkift ["+action+"] JSon["+paramJsonPartial+"] Accumulate["+accumulateJson+"]");
+                
+                  
+	          	configurationSet.setActions( accumulateJson );
 	          	
 	          	ResultSynchronization resultSynchronization = forkliftAPI.synchronize( configurationSet , bonitaAccessor );
                	listEvents.addAll(resultSynchronization.listEvents);
@@ -162,8 +174,30 @@ public class Index implements PageController {
                 ConfigurationSet configurationSet =new ConfigurationSet();
                 configurationSet.fromPage( jsonObjectMap );
                 listEvents= forkliftAPI.saveConfiguration( "default", configurationSet,  pageResourceProvider.getPageName(), apiSession.getTenantId());
+            } else if ("collect_reset".equals(action))
+            {
+                answer = new HashMap<String,Object>();
+                
+                String paramJsonPartial = request.getParameter("paramjsonpartial");
+                if (paramJsonPartial==null)
+                    paramJsonPartial="";
+                // logger.fine("collect_reset  paramJsonPartial=["+paramJsonPartial+"]");
+                httpSession.setAttribute("accumulate", paramJsonPartial );
+                answer.put("status", "ok");
             }
-			
+            else if ("collect_add".equals(action))
+            {
+                answer = new HashMap<String,Object>();
+
+                String paramJsonPartial = request.getParameter("paramjsonpartial");
+                logger.info("collect_add paramJsonPartial=["+paramJsonPartial+"] json=["+paramJsonSt+"]");
+
+                String accumulateJson = (String) httpSession.getAttribute("accumulate" );
+                accumulateJson+=paramJsonPartial;
+                httpSession.setAttribute("accumulate", accumulateJson );
+                answer.put("status", "ok");
+            }
+
 			
 			// ------------------ end
 			if (answer==null)
@@ -176,7 +210,7 @@ public class Index implements PageController {
             
 			String jsonDetailsSt = JSONValue.toJSONString( answer );
 			long timeEnd= System.currentTimeMillis();
-			logger.info("###################################### EndMeteor ["+action+"] Return["+jsonDetailsSt+"] in "+(timeEnd-timeBegin)+" ms");
+			logger.info("###################################### EndForkkift ["+action+"] Return["+jsonDetailsSt+"] in "+(timeEnd-timeBegin)+" ms");
 			
 			PrintWriter out = response.getWriter()
 

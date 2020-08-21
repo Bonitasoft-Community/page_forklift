@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.bonitasoft.custompage</groupId>
 	<artifactId>CustomPageForklift</artifactId>
-	<version>1.4.0</version>
+	<version>1.4.1</version>
 
 	<dependencies>
 		<dependency>

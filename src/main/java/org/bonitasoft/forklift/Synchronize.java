@@ -16,6 +16,7 @@ import org.bonitasoft.log.event.BEvent.Level;
 import org.bonitasoft.log.event.BEventFactory;
 import org.bonitasoft.store.BonitaStore;
 import org.bonitasoft.store.BonitaStore.DetectionParameters;
+import org.bonitasoft.store.BonitaStore.UrlToDownload;
 import org.bonitasoft.store.BonitaStoreAccessor;
 import org.bonitasoft.store.BonitaStoreDirectory;
 import org.bonitasoft.store.BonitaStoreResult;
@@ -38,6 +39,14 @@ import org.bonitasoft.store.artifact.ArtifactTheme;
 import org.bonitasoft.store.toolbox.LoggerStore;
 
 public class Synchronize {
+
+    private static final String CST_JSON_ACTION = "action";
+
+    private static final String CST_JSON_VERSIONARTIFACT = "version";
+
+    private static final String CST_JSON_NAMEARTIFACT = "name";
+
+    private static final String CST_JSON_TYPEARTIFACT = "type";
 
     private static BEvent EventDeploymentFailed = new BEvent(Synchronize.class.getName(), 1, Level.ERROR, "Error during Deployment", "An error occures at the deploiment", "Deployment can done partialy", "Check the exception");
 
@@ -150,9 +159,9 @@ public class Synchronize {
         Date dateBegin = new Date();
         int countDetectArtefact = 0;
 
-        int countDeployArtefactWithSuccess = 0;
-        int countDeployArtefactFailed = 0;
-        int countDeployArtefactIgnored = 0;
+        int countDeployArtifactWithSuccess = 0;
+        int countDeployArtifactFailed = 0;
+        int countDeployArtifactIgnored = 0;
         try {
             resultSynchronization.addReportLine("Synchronisation start at " + ForkliftAPI.sdf.format(dateBegin));
             LoggerStore loggerStore = new LoggerStore();
@@ -166,120 +175,118 @@ public class Synchronize {
 
                 orderArtefacts(listArtefact);
 
-                for (Artifact artefact : listArtefact.listArtifacts) {
+                for (Artifact artifact : listArtefact.listArtifacts) {
                     countDetectArtefact++;
 
                     // is this artifact is part of the listAction ?
                     boolean allowDeployment = false;
-                    boolean askSourceToRemoveArtefact = false;
+                    boolean askSourceToRemoveArtifact = false;
                     if (configurationSet.listActions != null) {
                         for (Map<String, Object> actionMap : configurationSet.listActions) {
-                            TypeArtifact typeMap = TypeArtifact.valueOf((String) actionMap.get("type"));
-                            if (artefact.getType().equals(typeMap)
-                                    && isEquals(artefact.getName(), (String) actionMap.get("name"))
-                                    && isEquals(artefact.getVersion(), (String) actionMap.get("version"))) {
+                            TypeArtifact typeMap = TypeArtifact.valueOf((String) actionMap.get(CST_JSON_TYPEARTIFACT));
+                            if (artifact.getType().equals(typeMap)
+                                    && isEquals(artifact.getName(), (String) actionMap.get(CST_JSON_NAMEARTIFACT))
+                                    && isEquals(artifact.getVersion(), (String) actionMap.get(CST_JSON_VERSIONARTIFACT))) {
                                 // we get the action to do
-                                if (Action.DEPLOY.toString().equals(actionMap.get("action"))) {
+                                if (Action.DEPLOY.toString().equals(actionMap.get(CST_JSON_ACTION))) {
                                     allowDeployment = true;
-                                    askSourceToRemoveArtefact = true;
+                                    askSourceToRemoveArtifact = true;
                                 }
-                                if (Action.DELETE.toString().equals(actionMap.get("action")))
-                                    askSourceToRemoveArtefact = true;
+                                if (Action.DELETE.toString().equals(actionMap.get(CST_JSON_ACTION)))
+                                    askSourceToRemoveArtifact = true;
 
                             }
                         }
                     } else
-                        allowDeployment = configurationSet.isContentAllow(artefact);
+                        allowDeployment = configurationSet.isContentAllow(artifact);
 
-                    DeployOperation deployOperation = null;
+                    DeployOperation deployOperation = new DeployOperation();
+                    deployOperation.artifact = artifact;
+
                     String logDeployment ="";
-                    // if the configuration allow this artefact ?
+                    // if the configuration allow this artifact ?
                     if (allowDeployment) {
-                        logDeployment += artefact.getType() + " " + artefact.getName() + " : ";
+                        logDeployment += artifact.getType() + " " + artifact.getName() + " : ";
                         // load it ?
-                        boolean continuueOperation = true;
-                        if (false) // ! artefact.isLoaded)
+                        boolean continueOperation = true;
+                        if (! artifact.isLoaded())
                         {
                             logDeployment += "loaded,";
-                            List<BEvent> listEvents = new ArrayList<BEvent>();
-                            // TODO  artefact.sourceOrigin.loadArtefact(artefact);
-                            if (BEventFactory.isError(listEvents)) {
-                                deployOperation = new DeployOperation();
-                                deployOperation.artifact = artefact;
-                                deployOperation.listEvents = listEvents;
+                            BonitaStoreResult bonitaStoreResult = bonitaStore.loadArtifact(artifact, UrlToDownload.URLDOWNLOAD.LASTRELEASE, loggerStore);
+                            if (BEventFactory.isError(bonitaStoreResult.getEvents())) {
+                                deployOperation.listEvents.addAll( bonitaStoreResult.getEvents() );
                                 deployOperation.deploymentStatus = DeploymentStatus.LOADFAILED;
                                 logDeployment += " failed.";
-                                continuueOperation = false;
+                                continueOperation = false;
                             }
                         }
-                        if (continuueOperation) {
+                        if (continueOperation) {
                             logDeployment += "Deploy ";
-                            deployOperation = artefact.deploy(bonitaAccessor, loggerStore);
-                            deployOperation.artifact = artefact;
+                            DeployOperation deployOperationDeploy = artifact.deploy(bonitaAccessor, loggerStore);
+                            deployOperation.listEvents.addAll( deployOperationDeploy.listEvents );
+                            deployOperation.deploymentStatus = deployOperationDeploy.deploymentStatus;
+                            logDeployment += deployOperationDeploy.report;
+
                         }
-                        logDeployment += deployOperation.report;
                         // decision can be updated now
-                        askSourceToRemoveArtefact = false;
+                        askSourceToRemoveArtifact = false;
 
                         switch (deployOperation.deploymentStatus) {
                             case REMOVEFAIL:
                                 logDeployment += "ERROR: Remove current failed";
-                                countDeployArtefactFailed++;
+                                countDeployArtifactFailed++;
                                 break;
                             case NOTHINGDONE:
                                 logDeployment += "INFO: Nothing is done";
-                                countDeployArtefactFailed++;
+                                countDeployArtifactFailed++;
                                 break;
                             case NEWALREADYINPLACE:
                                 logDeployment += "INFO: A new artefact is already in place";
-                                askSourceToRemoveArtefact = true;
-                                countDeployArtefactIgnored++;
+                                askSourceToRemoveArtifact = true;
+                                countDeployArtifactIgnored++;
                                 break;
                             case LOADFAILED:
                                 logDeployment += "ERROR: Load the content of the artefact failed";
-                                countDeployArtefactFailed++;
+                                countDeployArtifactFailed++;
                                 break;
                             case DEPLOYEDFAILED:
                                 logDeployment += "ERROR: Deployment failed";
-                                countDeployArtefactFailed++;
+                                countDeployArtifactFailed++;
+                                break;
+                            case LOADED:
+                                logDeployment += "LOADED: Deployment is done, but artifact is not ENABLE";
+                                askSourceToRemoveArtifact = true;
+                                countDeployArtifactWithSuccess++;
                                 break;
                             case DEPLOYED:
                                 logDeployment += "SUCCESS: Deployment is done";
-                                askSourceToRemoveArtefact = true;
-                                countDeployArtefactWithSuccess++;
+                                askSourceToRemoveArtifact = true;
+                                countDeployArtifactWithSuccess++;
                                 break;
                         }
 
-                        resultSynchronization.addErrorsEvent(deployOperation.listEvents);
+                        // do not add the event here, result will be available object per object resultSynchronization.addErrorsEvent(deployOperation.listEvents);
                     }
-                    if (askSourceToRemoveArtefact) {
-                        if (deployOperation == null) {
-                            // If not exist ==> THats mean only a delete was requested
-                            deployOperation = new DeployOperation();
-                            deployOperation.artifact = artefact;
-                        }
-
-                        List<BEvent> listEvents = new ArrayList<>();
+                    if (askSourceToRemoveArtifact) {
                         if (bonitaStore instanceof BonitaStoreDirectory) {
                             // move to an archive directory
                             try {
                                 File sourcePath = ((BonitaStoreDirectory)bonitaStore).getDirectory();
                                 File destinationPath = new File( sourcePath.getAbsoluteFile()+"/archive" );
                                 
-                                Toolbox.moveFile(  artefact.getFileName(), sourcePath, destinationPath, true);
+                                Toolbox.moveFile(  artifact.getFileName(), sourcePath, destinationPath, true);
                                 logDeployment+="Move to archive path;";
                             }catch(Exception e ) {}
                         }
-                        if (BEventFactory.isError(listEvents))
-                            resultSynchronization.addErrorsEvent(listEvents);
+                        
                         if (deployOperation.deploymentStatus == null)
                             deployOperation.deploymentStatus = DeploymentStatus.DELETED;
                     }
-                    if (deployOperation != null)
-                        resultSynchronization.addDetection(deployOperation);
+
+                    resultSynchronization.addDetection(deployOperation);
                     
                     resultSynchronization.addReportLine(logDeployment);
-
+                    artifact.clean(); // remove all content to limit the memory
                 } // end listArtefact
             } // end source
         } catch (Exception e) {
@@ -288,9 +295,9 @@ public class Synchronize {
         Date dateEnd = new Date();
         resultSynchronization.addReport("Synchronisation End at " + ForkliftAPI.sdf.format(dateEnd) + " in " + (dateEnd.getTime() - dateBegin.getTime()) + " ms");
         resultSynchronization.addReport("  Detected artefacts      : " + countDetectArtefact);
-        resultSynchronization.addReport("  Deployment with success : " + countDeployArtefactWithSuccess);
-        resultSynchronization.addReport("  Deployment failed       : " + countDeployArtefactFailed);
-        resultSynchronization.addReport("  Deployment ignored      : " + countDeployArtefactIgnored);
+        resultSynchronization.addReport("  Deployment with success : " + countDeployArtifactWithSuccess);
+        resultSynchronization.addReport("  Deployment failed       : " + countDeployArtifactFailed);
+        resultSynchronization.addReport("  Deployment ignored      : " + countDeployArtifactIgnored);
 
         resultSynchronization.addReport("Synchronisation End at " + ForkliftAPI.sdf.format(new Date()) + " in ");
 

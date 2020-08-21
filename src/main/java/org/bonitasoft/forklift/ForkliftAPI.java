@@ -165,7 +165,7 @@ public class ForkliftAPI {
 	private final static String cstConfigContent = "content";
 
 	public static class ConfigurationSet {
-		public List<BonitaStore> listSources = new ArrayList<BonitaStore>();
+		public List<BonitaStore> listSources = new ArrayList<>();
 		
 		public Map<String, Boolean> contentMap;
 
@@ -183,9 +183,9 @@ public class ForkliftAPI {
 		}
 		
 		public Object toJsonObject() {
-			Map<String, Object> mapSet = new HashMap<String, Object>();
+			Map<String, Object> mapSet = new HashMap<>();
 
-			List<Map<String, Object>> listMap = new ArrayList<Map<String, Object>>();
+			List<Map<String, Object>> listMap = new ArrayList<>();
 			for (BonitaStore source : listSources)
 				listMap.add(source.toMap());
 			mapSet.put(cstConfigSources, listMap);

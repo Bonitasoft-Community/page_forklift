@@ -12,16 +12,11 @@
     <title>ForkLift</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="pageResource?page=custompage_forklift&location=style/animate.css" />
-    <link rel="stylesheet" href="pageResource?page=custompage_forklift&location=style/bootstrap.min.css">
-	<link rel="stylesheet" href="pageResource?page=custompage_forklift&location=style/main.css">
-	<link rel="stylesheet" href="pageResource?page=custompage_forklift&location=style/style.css">
 
-	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-	<script type="text/javascript" src="https://www.google.com/uds/?file=visualization&amp;v=1&amp;hl=fr&amp;packages=corechart&amp;async=2"></script>
-	<link type="text/css" href="https://www.google.com/uds/api/visualization/1.0/ff67c3772da186a412ae3231c32409e9/ui+fr.css" rel="stylesheet">
-	<script type="text/javascript" src="https://www.google.com/uds/api/visualization/1.0/ff67c3772da186a412ae3231c32409e9/format+fr,default+fr,ui+fr,corechart+fr.I.js"></script>
-	<link href="https://ajax.googleapis.com/ajax/static/modules/gviz/1.0/core/tooltip.css" rel="stylesheet" type="text/css">
+	<link rel="stylesheet" href="css/animate.css" />
+  	<link rel="stylesheet" href="css/bootstrap.min.css">
+  	<link rel="stylesheet" href="css/main.css">
+  	<link rel="stylesheet" href="css/style.css">
 
 <style>
 .Loading {
@@ -49,8 +44,8 @@
 
 	<div class="bs-component" >
 		<center>
-		<table><tr><td><h1>Forklift</h1></td><td rowspan="2"><img src="pageResource?page=custompage_forklift&location=img/forklift.jpg" width="150" heigth="150" /></td></tr>
-			<tr><td style="font-size:0.8em"> V1.4</td></tr>
+		<table><tr><td><h1>Forklift</h1></td><td rowspan="2"><img src="img/forklift.jpg" width="150" heigth="150" /></td></tr>
+			<tr><td style="font-size:0.8em"> V1.4.1</td></tr>
 			<tr><td>
 				
 			</td></tr>
@@ -198,7 +193,7 @@
 				<td style="background:#fcf8e3">{{item.presentversion}}</td>
 				<td style="background:#fcf8e3">{{item.presentdate}}</td>
 				<td>
-					<span ng-show="item.detectionstatus=='NEWARTEFAC'" class="label label-success">New Artefact</span>
+					<span ng-show="item.detectionstatus=='NEWARTEFAC'" class="label label-success">New Artifact</span>
 					<span ng-show="item.detectionstatus=='SAME'"       class="label label-Warning">Same</span>
 					<span ng-show="item.detectionstatus=='OLDVERSION'" class="label label-danger">Old Version</span>
 					<span ng-show="item.detectionstatus=='NEWVERSION'" class="label label-info">New</span>
@@ -220,6 +215,7 @@
 						<span ng-show="item.deploystatus=='REMOVEFAIL'" class="label label-danger">Remove failed done</span>
 						<span ng-show="item.deploystatus=='LOADFAILED'" class="label label-danger">Load failed</span>
 						<span ng-show="item.deploystatus=='DEPLOYEDFAILED'" class="label label-danger">Deployment failed</span>
+						<span ng-show="item.deploystatus=='LOADED'" class="label label-info">Loaded (deployed, not enabled)</span>
 						<span ng-show="item.deploystatus=='DEPLOYED'" class="label label-success">Deployed</span>
 						<span ng-show="item.deploystatus=='DELETED'" class="label label-success">Removed</span>
 						
@@ -251,18 +247,18 @@
 
 <!-- Third party dependencies -->
 
-<script src="pageResource?page=custompage_forklift&location=3rd-party/jquery.min.js"></script>
 
-<script src="pageResource?page=custompage_forklift&location=3rd-party/angular.min.js"></script>
+<script src="js/jquery.min.js"></script>
 
-<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-resource.min.js"></script>
-<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-cookies.min.js"></script>
+<script src="js/angular.min.js"></script>
 
-<script src="pageResource?page=custompage_forklift&location=3rd-party/bootstrap/js/bootstrap.min.js"></script>
-<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-bootstrap-tpls.min.js"></script>
-<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-sanitize.min.js"></script>
-<script src="pageResource?page=custompage_forklift&location=3rd-party/angular-file-upload.js"></script>
-<script src="pageResource?page=custompage_forklift&location=3rd-party/ng-google-chart.js"></script>
+<script src="js/angular-resource.min.js"></script>
+<script src="js/angular-cookies.min.js"></script>
+
+<script src="js/bootstrap.min.js"></script>
+<script src="js/angular-sanitize.min.js"></script>
+<script src="js/angular-file-upload.js"></script>
+<script src="js/ng-google-chart.js"></script>
 
 
 <!-- Application dependencies -->
