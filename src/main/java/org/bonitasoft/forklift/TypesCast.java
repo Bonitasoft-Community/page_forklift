@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public class Toolbox {
+public class TypesCast {
 
     /**
      * this is the logger to use in FoodTruck Attention to reduce the usage, and
@@ -81,6 +81,7 @@ public class Toolbox {
      * @param defaultValue
      * @return
      */
+    @SuppressWarnings("unchecked")
     static List<Map<String, String>> getList(final Object parameter, final List<Map<String, String>> defaultValue) {
         if (parameter == null) {
             return defaultValue;
@@ -97,6 +98,7 @@ public class Toolbox {
      * @param defaultValue
      * @return
      */
+    @SuppressWarnings("unchecked")
     static Map<String, Object> getMap(final Object parameter, final Map<String, Object> defaultValue) {
         if (parameter == null) {
             return defaultValue;

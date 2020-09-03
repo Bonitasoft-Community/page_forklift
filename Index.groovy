@@ -72,7 +72,7 @@ import org.bonitasoft.log.event.BEvent.Level;
 import org.bonitasoft.store.BonitaStoreAccessor;
 
 import org.bonitasoft.forklift.ForkliftAPI;
-import org.bonitasoft.forklift.ForkliftAPI.ConfigurationSet;
+import org.bonitasoft.forklift.ConfigurationSet;
 import org.bonitasoft.forklift.ForkliftAPI.ResultSynchronization;
 
 
@@ -134,10 +134,12 @@ public class Index implements PageController {
                 if (paramJsonPartial !=null)
                     accumulateJson+=paramJsonPartial;
                     
-                logger.info("Forkkift ["+action+"] JSon["+paramJsonPartial+"] Accumulate["+accumulateJson+"]");
+                String accumulateJsonSt = (accumulateJson==null ? null : java.net.URLDecoder.decode(accumulateJson, "UTF-8"));
+                    
+                logger.info("Forkkift ["+action+"] JSon["+paramJsonPartial+"] Accumulate["+accumulateJsonSt+"]");
                 
                   
-	          	configurationSet.setActions( accumulateJson );
+	          	configurationSet.setActions( accumulateJsonSt );
 	          	
 	          	ResultSynchronization resultSynchronization = forkliftAPI.synchronize( configurationSet , bonitaAccessor );
                	listEvents.addAll(resultSynchronization.listEvents);
@@ -154,12 +156,12 @@ public class Index implements PageController {
                	answer.put("report", resultSynchronization.report);
 	        }
 			// ---------- config
-            else if ("loadConfiguration".equals(action))
+            else if ("init".equals(action))
             {
             	answer = new HashMap<String,Object>()
         	    // final Object jsonObject = JSONValue.parse(paramJsonSt);
-            	
-            	ConfigurationSet configurationSet= forkliftAPI.loadConfiguration("default", pageResourceProvider.getPageName(), apiSession.getTenantId());
+                ConfigurationSet configurationSet= forkliftAPI.init("default", pageResourceProvider.getPageName(), apiSession.getTenantId());
+                
             	answer.putAll(configurationSet.toJsonObject() );
             	
                	listEvents.addAll(configurationSet.listEvents);
@@ -172,7 +174,7 @@ public class Index implements PageController {
                 final Object jsonObject = JSONValue.parse(paramJsonSt);
                 Map jsonObjectMap = (Map) jsonObject;
                 ConfigurationSet configurationSet =new ConfigurationSet();
-                configurationSet.fromPage( jsonObjectMap );
+                configurationSet.fromJsonObject( jsonObjectMap );
                 listEvents= forkliftAPI.saveConfiguration( "default", configurationSet,  pageResourceProvider.getPageName(), apiSession.getTenantId());
             } else if ("collect_reset".equals(action))
             {

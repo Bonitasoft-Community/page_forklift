@@ -9,23 +9,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bonitasoft.forklift.ForkliftAPI.ConfigurationSet;
 import org.bonitasoft.forklift.ForkliftAPI.ResultSynchronization;
 import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
 import org.bonitasoft.log.event.BEventFactory;
 import org.bonitasoft.store.BonitaStore;
-import org.bonitasoft.store.BonitaStore.DetectionParameters;
 import org.bonitasoft.store.BonitaStore.UrlToDownload;
 import org.bonitasoft.store.BonitaStoreAccessor;
 import org.bonitasoft.store.BonitaStoreDirectory;
+import org.bonitasoft.store.BonitaStoreParameters;
 import org.bonitasoft.store.BonitaStoreResult;
 import org.bonitasoft.store.artifact.Artifact;
 import org.bonitasoft.store.artifact.Artifact.TypeArtifact;
-import org.bonitasoft.store.artifactdeploy.DeployStrategy.Action;
-import org.bonitasoft.store.artifactdeploy.DeployStrategy.DeployOperation;
-import org.bonitasoft.store.artifactdeploy.DeployStrategy.DeploymentStatus;
-import org.bonitasoft.store.artifactdeploy.DeployStrategy.DetectionStatus;
 import org.bonitasoft.store.artifact.ArtifactBDM;
 import org.bonitasoft.store.artifact.ArtifactCustomPage;
 import org.bonitasoft.store.artifact.ArtifactLayout;
@@ -36,6 +31,10 @@ import org.bonitasoft.store.artifact.ArtifactProcess;
 import org.bonitasoft.store.artifact.ArtifactProfile;
 import org.bonitasoft.store.artifact.ArtifactRestApi;
 import org.bonitasoft.store.artifact.ArtifactTheme;
+import org.bonitasoft.store.artifactdeploy.DeployStrategy.Action;
+import org.bonitasoft.store.artifactdeploy.DeployStrategy.DeployOperation;
+import org.bonitasoft.store.artifactdeploy.DeployStrategy.DeploymentStatus;
+import org.bonitasoft.store.artifactdeploy.DeployStrategy.DetectionStatus;
 import org.bonitasoft.store.toolbox.LoggerStore;
 
 public class Synchronize {
@@ -48,7 +47,9 @@ public class Synchronize {
 
     private static final String CST_JSON_TYPEARTIFACT = "type";
 
-    private static BEvent EventDeploymentFailed = new BEvent(Synchronize.class.getName(), 1, Level.ERROR, "Error during Deployment", "An error occures at the deploiment", "Deployment can done partialy", "Check the exception");
+    private final static BEvent eventDeploymentFailed = new BEvent(Synchronize.class.getName(), 1, Level.ERROR, "Error during Deployment", "An error occures at the deploiment", "Deployment can done partialy", "Check the exception");
+    private final static BEvent eventCanMoveToArchive = new BEvent(Synchronize.class.getName(), 2, Level.APPLICATIONERROR, "Can't move to archived", "The artefact can't be move to the archive directory", "Artefact will be study a new time, but then mark as 'already loaded'",
+            "Check the exception (access right ?)");
 
     private ConfigurationSet configurationSet;
 
@@ -67,11 +68,19 @@ public class Synchronize {
 
         Map<String, Long> numberPerContent = new HashMap<>();
         LoggerStore loggerStore = new LoggerStore();
-        DetectionParameters detectionParameters = new DetectionParameters();
+        BonitaStoreParameters detectionParameters = configurationSet.getDetectionParameters();
+        
         // run each source
-        for (BonitaStore source : configurationSet.listSources) {
-            resultSynchronization.addReportLine("Source " + source.getName());
-            BonitaStoreResult listArtifacts = source.getListArtifacts(detectionParameters, loggerStore);
+        for (BonitaStore bonitaStore : configurationSet.listSources) {
+            resultSynchronization.addReportLine("Source " + bonitaStore.getName());
+            
+            // open the store
+            List<BEvent> listEvents = bonitaStore.begin(detectionParameters, loggerStore );
+            resultSynchronization.addErrorsEvent(listEvents);
+            if (BEventFactory.isError(listEvents))
+                continue;
+   
+            BonitaStoreResult listArtifacts = bonitaStore.getListArtifacts(detectionParameters, loggerStore);
 
             orderArtefacts(listArtifacts);
 
@@ -89,7 +98,7 @@ public class Synchronize {
                     numberPerContent.put(artifact.getType().toString().toLowerCase(), nb == null ? 1L : nb + 1);
 
                     resultSynchronization.addReport("  Detect " + artifact.getType().toString() + " " + artifact.getName()+"; ");
-                    DeployOperation deployOperation = artifact.detectDeployment(bonitaAccessor, loggerStore);
+                    DeployOperation deployOperation = artifact.detectDeployment(detectionParameters, bonitaAccessor, loggerStore);
                     if (deployOperation.detectionStatus == null) {
                         // create one analysis
                         if (deployOperation.presentDateArtifact == null) {
@@ -123,12 +132,17 @@ public class Synchronize {
                         case DETECTIONFAILED:
                             deployOperation.action = Action.IGNORE;
                             break;
+                        case UNDETERMINED:
+                            deployOperation.action = Action.IGNORE;
+                            break;
                     }
 
                     resultSynchronization.addDetection(deployOperation);
                 }
             }
-        }
+            resultSynchronization.addErrorsEvent(bonitaStore.end( detectionParameters, loggerStore ));
+
+        } // end the store
 
         // report of the analysis
         boolean isNothingIsAllow = true;
@@ -166,16 +180,24 @@ public class Synchronize {
             resultSynchronization.addReportLine("Synchronisation start at " + ForkliftAPI.sdf.format(dateBegin));
             LoggerStore loggerStore = new LoggerStore();
 
-            DetectionParameters detectionParameters = new DetectionParameters();
+            BonitaStoreParameters detectionParameters = configurationSet.getDetectionParameters();
             detectionParameters.withNotAvailable = true;
             // run each source
             for (BonitaStore bonitaStore : configurationSet.listSources) {
                 resultSynchronization.addReportLine("Source " + bonitaStore.getName());
-                BonitaStoreResult listArtefact = bonitaStore.getListArtifacts(detectionParameters, loggerStore);
+                
+                // open the store
+                List<BEvent> listEvents = bonitaStore.begin(detectionParameters, loggerStore );
+                resultSynchronization.addErrorsEvent(listEvents);
+                if (BEventFactory.isError(listEvents))
+                    continue;
+                
+                
+                BonitaStoreResult listArtefacts = bonitaStore.getListArtifacts(detectionParameters, loggerStore);
 
-                orderArtefacts(listArtefact);
+                orderArtefacts(listArtefacts);
 
-                for (Artifact artifact : listArtefact.listArtifacts) {
+                for (Artifact artifact : listArtefacts.listArtifacts) {
                     countDetectArtefact++;
 
                     // is this artifact is part of the listAction ?
@@ -206,13 +228,13 @@ public class Synchronize {
                     String logDeployment ="";
                     // if the configuration allow this artifact ?
                     if (allowDeployment) {
-                        logDeployment += artifact.getType() + " " + artifact.getName() + " : ";
+                        logDeployment += artifact.getType() + " " + artifact.getBonitaName() + " : ";
                         // load it ?
                         boolean continueOperation = true;
                         if (! artifact.isLoaded())
                         {
                             logDeployment += "loaded,";
-                            BonitaStoreResult bonitaStoreResult = bonitaStore.loadArtifact(artifact, UrlToDownload.URLDOWNLOAD.LASTRELEASE, loggerStore);
+                            BonitaStoreResult bonitaStoreResult = bonitaStore.loadArtifact(artifact, UrlToDownload.LASTRELEASE, loggerStore);
                             if (BEventFactory.isError(bonitaStoreResult.getEvents())) {
                                 deployOperation.listEvents.addAll( bonitaStoreResult.getEvents() );
                                 deployOperation.deploymentStatus = DeploymentStatus.LOADFAILED;
@@ -222,7 +244,7 @@ public class Synchronize {
                         }
                         if (continueOperation) {
                             logDeployment += "Deploy ";
-                            DeployOperation deployOperationDeploy = artifact.deploy(bonitaAccessor, loggerStore);
+                            DeployOperation deployOperationDeploy = artifact.deploy(detectionParameters, bonitaAccessor, loggerStore);
                             deployOperation.listEvents.addAll( deployOperationDeploy.listEvents );
                             deployOperation.deploymentStatus = deployOperationDeploy.deploymentStatus;
                             logDeployment += deployOperationDeploy.report;
@@ -270,13 +292,15 @@ public class Synchronize {
                     if (askSourceToRemoveArtifact) {
                         if (bonitaStore instanceof BonitaStoreDirectory) {
                             // move to an archive directory
+                            File sourcePath = ((BonitaStoreDirectory)bonitaStore).getDirectory();
+                            File destinationPath = new File( sourcePath.getAbsoluteFile()+"/archive" );
                             try {
-                                File sourcePath = ((BonitaStoreDirectory)bonitaStore).getDirectory();
-                                File destinationPath = new File( sourcePath.getAbsoluteFile()+"/archive" );
                                 
-                                Toolbox.moveFile(  artifact.getFileName(), sourcePath, destinationPath, true);
+                                TypesCast.moveFile(  artifact.getFileName(), sourcePath, destinationPath, true);
                                 logDeployment+="Move to archive path;";
-                            }catch(Exception e ) {}
+                            }catch(Exception e ) {
+                                deployOperation.listEvents.add( new BEvent( eventCanMoveToArchive, "File["+artifact.getFileName()+"] move from["+sourcePath.getAbsolutePath()+"] to ["+destinationPath.getAbsolutePath()+"]"));
+                            }
                         }
                         
                         if (deployOperation.deploymentStatus == null)
@@ -288,9 +312,13 @@ public class Synchronize {
                     resultSynchronization.addReportLine(logDeployment);
                     artifact.clean(); // remove all content to limit the memory
                 } // end listArtefact
+                
+                // end the store
+                resultSynchronization.addErrorsEvent(bonitaStore.end( detectionParameters, loggerStore ));
             } // end source
+
         } catch (Exception e) {
-            resultSynchronization.addErrorEvent(new BEvent(EventDeploymentFailed, e, ""));
+            resultSynchronization.addErrorEvent(new BEvent(eventDeploymentFailed, e, ""));
         }
         Date dateEnd = new Date();
         resultSynchronization.addReport("Synchronisation End at " + ForkliftAPI.sdf.format(dateEnd) + " in " + (dateEnd.getTime() - dateBegin.getTime()) + " ms");

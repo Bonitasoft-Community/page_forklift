@@ -27,11 +27,34 @@ appCommand.controller('ForkLiftControler',
 	// , {'name':'Bonita server', 'type':'BONITA'}
 	this.config = { 'sources':[],
 					'content': {},
-					'options' : [ {'name':'Directory', 'type':'DIR'}], 
-					'toadd': 'DIR',
+					'options' : [ 
+						{'name':'Directory ', 
+							'type':'Dir',
+							'title' : "Directory",
+							'explanation':'All files behind this directory are detected'
+						}, 
+						{'name':'BCD', 
+							'type':'BCD',
+							'title':'Bonita Continous Delivery (BCD)',
+							'explanation': 'Specify the Target directory of BCD'}], 
+					'toadd': 'Dir',
 					
 	}
 		
+	this.navbaractiv = 'Artifacts';
+	this.getNavClass = function( tabtodisplay )
+	{
+		if (this.navbaractiv === tabtodisplay)
+			return 'ng-isolate-scope active';
+		return 'ng-isolate-scope';
+	}
+
+	this.getNavStyle = function( tabtodisplay )
+	{
+		if (this.navbaractiv === tabtodisplay)
+			return 'border: 1px solid #c2c2c2;border-bottom-color: transparent;';
+		return 'background-color:#cbcbcb';
+	}
 	this.showhistory = function( showHistory ) {
 		this.isshowhistory = showHistory;
 		};
@@ -42,8 +65,13 @@ appCommand.controller('ForkLiftControler',
 	// -------------------------------------
 	this.addOneSource = function( typeSource)
 	{
+		console.log("addOneSource type="+typeSource);
+		
 		var newsource= { 'type': typeSource };
-		this.config.sources.push( newsource);
+		
+		this.config.sources.push( newsource );
+		console.log("List="+angular.fromJson(this.config.sources));
+		
 	}
 	this.removeOneSource = function ( source )
 	{
@@ -56,16 +84,16 @@ appCommand.controller('ForkLiftControler',
 	}
 		
 	// load sources
-	this.loadConfiguration = function () 
+	this.init = function () 
 	{
 		this.config.listevents='';
 		this.config.wait=true;
 		var self=this;
-		$http.get( '?page=custompage_forklift&action=loadConfiguration&t='+Date.now()  )
+		$http.get( '?page=custompage_forklift&action=init&t='+Date.now()  )
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
 				if (statusHttp==401 || typeof jsonResult === 'string') {
-					console.log("Redirected to the login page !");
+					console.log("Redirected to the login page ! statusHttp="+statusHttp+" jsonResult="+jsonResult);
 					window.location.reload();
 				}
 				self.config.wait=false;
@@ -85,7 +113,7 @@ appCommand.controller('ForkLiftControler',
 			});
 	
 	}
-	this.loadConfiguration();
+	this.init();
 	
 	// save sources
 	this.saveConfiguration= function()
@@ -104,11 +132,13 @@ appCommand.controller('ForkLiftControler',
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
 				if (statusHttp==401 || typeof jsonResult === 'string') {
-					console.log("Redirected to the login page !");
+					console.log("Redirected to the login page ! statusHttp="+statusHttp+" jsonResult="+jsonResult);
+
 					window.location.reload();
 				}
 				self.config.wait=false;
 				self.config.listevents= jsonResult.listevents; 
+				console.log("Save list events="+jsonResult.listevents);
 			})
 			.error( function ( jsonResult ) {
 				self.config.wait=false;
@@ -117,14 +147,14 @@ appCommand.controller('ForkLiftControler',
 		
 	this.checkContent = function( checkPlease )
 	{
-		//this.config.content.organization=checkPlease;
-		//this.config.content.layout=checkPlease;
-		//this.config.content.theme=checkPlease;
-		//this.config.content.pages=checkPlease;
-		//this.config.content.restapi=checkPlease;
+		this.config.content.organization=checkPlease;
+		this.config.content.layout=checkPlease;
+		this.config.content.theme=checkPlease;
+		this.config.content.custompage=checkPlease;
+		this.config.content.restapi=checkPlease;
 		this.config.content.profile=checkPlease;
-		//this.config.content.livingapp=checkPlease;
-		//this.config.content.bdm=checkPlease;
+		this.config.content.livingapp=checkPlease;
+		// this.config.content.bdm=checkPlease;
 		this.config.content.process=checkPlease;
 	}
 	// default : check all
@@ -136,9 +166,9 @@ appCommand.controller('ForkLiftControler',
 	// -------------------------------------
 	this.synchronisation={ 'wait': false, 'listevents':'', 'report':''};
 	this.synchronisation.actions = [
-		{ 'type': 'DEPLOY', 'name':'Deploy artifact on server, then archive artifact'},
-		{ 'type': 'IGNORE', 'name':'Ignore, do nothing'},
-		{ 'type': 'DELETE', 'name':'Archive artifact, no change on server'}
+		{ 'type': 'DEPLOY', 'name':'Deploy'},
+		{ 'type': 'IGNORE', 'name':'Ignore'},
+		{ 'type': 'DELETE', 'name':'Archive'}
 		];
 	
 	this.synchronisationDetect = function()
@@ -151,7 +181,8 @@ appCommand.controller('ForkLiftControler',
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
 				if (statusHttp==401 || typeof jsonResult === 'string') {
-					console.log("Redirected to the login page !");
+					console.log("Redirected to the login page ! statusHttp="+statusHttp+" jsonResult="+jsonResult);
+
 					window.location.reload();
 				}
 				self.synchronisation.wait=false;
@@ -311,7 +342,7 @@ appCommand.controller('ForkLiftControler',
 	{
 		var self=this;
 		self.inprogress=true;
-		// console.log("sendPost inProgress<=true action="+finalaction+" Json="+ angular.toJson( json ));
+		console.log("sendPost inProgress<=true action="+finalaction+" Json="+ angular.toJson( json ));
 		
 		self.postParams={};
 		self.postParams.listUrlCall=[];
@@ -357,7 +388,8 @@ appCommand.controller('ForkLiftControler',
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
 				if (statusHttp==401 || typeof jsonResult === 'string') {
-					console.log("Redirected to the login page !");
+					console.log("Redirected to the login page ! statusHttp="+statusHttp+" jsonResult="+jsonResult);
+
 					window.location.reload();
 				}
 				// console.log("executeListUrl receive data HTTP");
@@ -381,7 +413,8 @@ appCommand.controller('ForkLiftControler',
 				console.log("executeListUrl.error HTTP statusHttp="+statusHttp);
 				// connection is lost ?
 				if (statusHttp==401) {
-					console.log("Redirected to the login page !");
+					console.log("error, Redirected to the login page ! statusHttp="+statusHttp+" jsonResult="+jsonResult);
+
 					window.location.reload();
 				}
 				self.inprogress = false;				

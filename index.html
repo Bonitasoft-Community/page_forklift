@@ -40,12 +40,12 @@
 
 <body ng-app="forkliftmonitor">
 
-<div class="col-lg-12"  ng-controller="ForkLiftControler as forkliftctrl">
+<div class="col-lg-12"  ng-controller="ForkLiftControler as ctrl">
 
 	<div class="bs-component" >
 		<center>
 		<table><tr><td><h1>Forklift</h1></td><td rowspan="2"><img src="img/forklift.jpg" width="150" heigth="150" /></td></tr>
-			<tr><td style="font-size:0.8em"> V1.4.1</td></tr>
+			<tr><td style="font-size:0.8em"> V1.5.0 Sept 2 2020</td></tr>
 			<tr><td>
 				
 			</td></tr>
@@ -54,123 +54,48 @@
 	</div>
 
 	<div class="bs-component" >
-		<h3><span class="glyphicon glyphicon-th"></span>
-			<a href="#" ng-click="forkliftctrl.showsources = ! forkliftctrl.showsources" style="text-decoration:none">					
-  				<span ng-show="forkliftctrl.showsources" class="glyphicon glyphicon-chevron-down" style="font-size: 18px;"></span>
- 				</a>
-			<a href="#" ng-click="forkliftctrl.showsources = ! forkliftctrl.showsources" style="text-decoration:none">					
-				<span ng-show="! forkliftctrl.showsources" class="glyphicon glyphicon-chevron-right"  style="font-size: 18px;"></span>
-			</a>
-		Configuration</h3>
-		<div ng-show="forkliftctrl.showsources">		
-
-			<!--  --------------------------------------------------------- Source -->
-			<legend class="text-primary">Source</legend>
-			
-			<table class="table table-striped table-hover table-condensed">
-				<tbody ng-repeat="source in forkliftctrl.config.sources track by $index">
-				
-					<tr ng-show="source.type=='Dir'">
-						<td>
-							<span class="explanation">All files behind this directory is immediately loaded</span><p>
-							Directory: <input type="text" ng-model="source.directory" size="60">
-						</td>
-						<td>
-							<button ng-click="forkliftctrl.removeOneSource( source )"  class="btn btn-danger btn-xs">Remove</button>
-						</td>
-					</tr>
-					
-					<tr ng-show="source.type=='Bonita'">
-						<td>
-							<span class="explanation">The external Bonita Server is called, and the artefacts are compare to the local server. All new artefact are loaded.</span><p>
-							<table>
-							<tr><td>Bonita server Host:</td><td> <input type="text" ng-model="source.host"  ></td></tr>
-							<tr><td>Bonita server Port:</td><td> <input type="text" ng-model="source.port" ></td></tr>
-							<tr><td>Login:</td><td> <input type="text" ng-model="source.login" ></td></tr>
-							<tr><td>Password:</td><td> <input type="password" ng-model="source.password" ></td></tr>
-							<tr><td colspan="2">
-								<button ng-click="forkliftctrl.testConnection( source )"  class="btn btn-primary btn-xs">Test connection</button>
-								<div ng-bind-html="forkliftctrl.getListEvents(source.listevents)"></div>
-							
-							</table>
-						</td>
-						<td>
-							<button ng-click="forkliftctrl.removeOneSource( source )"  class="btn btn-danger btn-xs">Remove</button>
-						</td>
-					</tr>
-				</tbody>		
-			</table>
-			
-			
-			
-			Add a source:
-			<select ng-model="forkliftctrl.config.toadd" style="width: 150px;">
-					<option ng-repeat="oneconf in forkliftctrl.config.options" value="{{oneconf.type}}">{{oneconf.name}}</option>
-			</select>
-			<button ng-click="forkliftctrl.addOneSource( forkliftctrl.config.toadd )"  class="btn btn-primary btn-xs"  ng-disabled="forkliftctrl.config.wait">Add</button>
-			
-			<!--  --------------------------------------------------------- Frequency 
-			<legend class="text-primary">Frequency</legend>
-			<input type="checkbox" ng-model="forkliftctrl.frequency.active">Active<p>
-			<span class="explanation">Active and fix the frequency of the verification</span><p>
-			Months <input type="number" ng-model="forkliftctrl.frequency.months" ng-disabled="!forkliftctrl.frequency.active" size="3">
-			Days <input type="number" ng-model="forkliftctrl.frequency.days" ng-disabled="!forkliftctrl.frequency.active" size="3">
-			Hours <input type="number" ng-model="forkliftctrl.frequency.hours" ng-disabled="!forkliftctrl.frequency.active" size="3">
-			Minutes <input type="number" ng-model="forkliftctrl.frequency.minutes" ng-disabled="!forkliftctrl.frequency.active" size="3">
-			Seconds <input type="number" ng-model="forkliftctrl.frequency.secondes" ng-disabled="!forkliftctrl.frequency.active" size="3">
-			-->
-			
-			<!--  --------------------------------------------------------- Content -->
-			<legend class="text-primary">Content</legend>
 	
-			<input type="checkbox" ng-model="forkliftctrl.config.content.layout"  		>Layout</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.theme"    		>Theme</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.lookandfeel" 	>Look and feel</input>
-			<!-- <input type="checkbox" ng-model="forkliftctrl.config.content.bdm"			ng-disabled="1==1">Business Data Model</input>-->			
-			<input type="checkbox" ng-model="forkliftctrl.config.content.organization" 	>Organization</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.restapi"		>RestAPI</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.pages"     	>Pages</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.process"		>Process</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.profile"		>Profiles</input>
-			<input type="checkbox" ng-model="forkliftctrl.config.content.livingapp"		>Living Application</input>
-			<button ng-click="forkliftctrl.checkContent( true )"  class="btn btn-info btn-xs" >Check All</button>			
+		<ul class="nav nav-tabs"  ng-class="{'nav-stacked': vertical, 'nav-justified': justified}" style="border-bottom: 1px solid #c2c2c2;">
+			<li ng-class="{active: active, disabled: false}" id="form-tab" heading="All" active="true" title="Artifacts" select="ctrl.navbaractiv == 'Artifacts'" class="{{ctrl.getNavClass('Artifacts')}}" style="{{ctrl.getNavStyle('Artifacts')}}">
+				  <a ng-click="ctrl.navbaractiv = 'Artifacts';"   class="ng-binding">Artifacts</a>
+			</li>
+			
+			<li ng-class="{active: active, disabled: false}" id="form-tab" heading="All" active="true" title="Parameters" select="ctrl.navbaractiv == 'Parameters'" class="{{ctrl.getNavClass('Parameters')}}" style="{{ctrl.getNavStyle('Parameters')}}">
+				  <a ng-click="ctrl.navbaractiv = 'Parameters';"   class="ng-binding">Parameters</a>
+			</li>
 			
 			
-			<p>
-			<span ng-show="forkliftctrl.config.wait"> 
-				<span class="Loading">.</span> 
-			</span>
-			<button ng-click="forkliftctrl.saveConfiguration()"  class="btn btn-success btn-lg" ng-disabled="forkliftctrl.config.wait">Save</button>			
-			<div ng-bind-html="forkliftctrl.getListEvents(forkliftctrl.config.listevents)"></div>
-		</div>						
-	</div>
+		</ul>
+	</div> <!--  end navigation -->
 	
+	<!--  ************************************************************  -->	
+	<!--  Detection 		 										-->
+	<!--  ************************************************************  -->		
 	
-	
-	<div class="bs-component" >
-		<legend class="text-primary"><span class="glyphicon glyphicon-th"></span>Monitoring</legend>
+	<div class="bs-component"  ng-if="ctrl.navbaractiv == 'Artifacts'">
+		<p>	
 		
 		
 		<center>
-			<span ng-show="forkliftctrl.synchronisation.wait"> 
+			<span ng-show="ctrl.synchronisation.wait"> 
 				<span class="Loading">.</span> 
 			</span>
-			<button ng-click="forkliftctrl.synchronisationDetect()"  class="btn btn-info" ng-disabled="forkliftctrl.synchronisation.wait">Detection</button><p>
+			<button ng-click="ctrl.synchronisationDetect()"  class="btn btn-info" ng-disabled="ctrl.synchronisation.wait">Detection</button><p>
 		</center>
 		
 		<!--  what to display -->
 		<div class="label label-info">
 		Show:
-		<input type="checkbox" ng-model="forkliftctrl.showartefact.layout">Layout</input>
-		<input type="checkbox" ng-model="forkliftctrl.showartefact.theme">Theme</input>
-		<input type="checkbox" ng-model="forkliftctrl.showartefact.lookandfeel">Look and feel</input>
-		<!--  <input type="checkbox" ng-model="forkliftctrl.showartefact.bdm">BDM</input> -->
-		<input type="checkbox" ng-model="forkliftctrl.showartefact.organization">Organization</input>
-		<input type="checkbox" ng-model="forkliftctrl.showartefact.restapi"		>RestAPI</input>
-		<input type="checkbox" ng-model="forkliftctrl.showartefact.pages"     	>Pages</input>
-		<input type="checkbox" ng-model="forkliftctrl.showartefact.process"		>Process</input>
-		<input type="checkbox" ng-model="forkliftctrl.showartefact.profile"		>Profiles</input>
-		<input type="checkbox" ng-model="forkliftctrl.showartefact.livingapp"	>Living Application</input>
+		<input type="checkbox" ng-model="ctrl.showartefact.layout">Layout</input>
+		<input type="checkbox" ng-model="ctrl.showartefact.theme">Theme</input>
+		<input type="checkbox" ng-model="ctrl.showartefact.lookandfeel">Look and feel</input>
+		<!--  <input type="checkbox" ng-model="ctrl.showartefact.bdm">BDM</input> -->
+		<input type="checkbox" ng-model="ctrl.showartefact.organization">Organization</input>
+		<input type="checkbox" ng-model="ctrl.showartefact.restapi"		>RestAPI</input>
+		<input type="checkbox" ng-model="ctrl.showartefact.pages"     	>Pages</input>
+		<input type="checkbox" ng-model="ctrl.showartefact.process"		>Process</input>
+		<input type="checkbox" ng-model="ctrl.showartefact.profile"		>Profiles</input>
+		<input type="checkbox" ng-model="ctrl.showartefact.livingapp"	>Living Application</input>
 		</div>
 		<table class="table table-striped table-hover table-condensed">
 			<tr >
@@ -183,20 +108,21 @@
 				<th style="background:#fcf8e3">Deployed date</th>
 				<th colspan="2">Decision</th>
 			</tr>
-			<tbody ng-repeat="item in forkliftctrl.getItems() track by $index">
+			<tbody ng-repeat="item in ctrl.getItems() track by $index">
 			<tr >
 				<td>{{item.type}}</td>
-				<td>{{item.name}}</td>
-				<td>{{item.version}}</td>
-				<td>{{item.date}}</td>
+				<td><a title="Store: {{item.bonitastoredisplayname}}">{{item.bonitaname}}</a></td>
+				<td style="font-size: 10px">{{item.version}}</td>
+				<td style="font-size: 10px">{{item.date}}</td>
 				<td>{{item.report}}</td>
-				<td style="background:#fcf8e3">{{item.presentversion}}</td>
-				<td style="background:#fcf8e3">{{item.presentdate}}</td>
+				<td style="background:#fcf8e3;font-size: 10px">{{item.presentversion}}</td>
+				<td style="background:#fcf8e3;font-size: 10px">{{item.presentdate}}</td>
 				<td>
-					<span ng-show="item.detectionstatus=='NEWARTEFAC'" class="label label-success">New Artifact</span>
-					<span ng-show="item.detectionstatus=='SAME'"       class="label label-Warning">Same</span>
-					<span ng-show="item.detectionstatus=='OLDVERSION'" class="label label-danger">Old Version</span>
-					<span ng-show="item.detectionstatus=='NEWVERSION'" class="label label-info">New</span>
+					<span ng-if="item.detectionstatus == 'NEWARTEFAC'" class="label label-success">New Artifact</span>
+					<span ng-if="item.detectionstatus == 'SAME'"       class="label label-warning">Same</span>
+					<span ng-if="item.detectionstatus == 'OLDVERSION'" class="label label-danger">Old Version</span>
+					<span ng-if="item.detectionstatus == 'NEWVERSION'" class="label label-info">New</span>
+					<span ng-if="item.detectionstatus == 'UNDETERMINED'" class="label label-info">Undetermined</span>
 				</td>
 					
 				<td>
@@ -205,7 +131,7 @@
 					</div>
 					<div ng-show="! item.invaliddecision == true">					
 						<select ng-model="item.action" style="width: 150px;">
-							<option ng-repeat="onestatus in forkliftctrl.synchronisation.actions" value="{{onestatus.type}}" ng-selected="item.action==onestatus.type">{{onestatus.name}}</option>
+							<option ng-repeat="onestatus in ctrl.synchronisation.actions" value="{{onestatus.type}}" ng-selected="item.action==onestatus.type">{{onestatus.name}}</option>
 						</select>
 					</div>
 					<br>
@@ -221,25 +147,149 @@
 						
 						
 				
-					<div ng-bind-html="forkliftctrl.getListEvents( item.listevents )"></div>		
+					<div ng-bind-html="ctrl.getListEvents( item.listevents )"></div>		
 				</td>
 				
 			</tr>
 			</tbody>
 		</table>
 		<center>
-			<span ng-show="forkliftctrl.synchronisation.wait"> 
+			<span ng-show="ctrl.synchronisation.wait"> 
 				<span class="Loading">.</span> 
 			</span>
 		
-			<button ng-click="forkliftctrl.synchronisationExecute()"  class="btn btn-warning" ng-disabled="forkliftctrl.synchronisation.wait">Apply</button><p>
+			<button ng-click="ctrl.synchronisationExecute()"  class="btn btn-warning" ng-disabled="ctrl.synchronisation.wait">Apply</button><p>
 		</center>
 		
-		<div ng-bind-html="forkliftctrl.getListEvents(forkliftctrl.synchronisation.listevents)"></div>
-		<textarea ng-model="forkliftctrl.synchronisation.report" rows="20" style="width:100%;" readonly></textarea>
-		<p>
+		<div ng-bind-html="ctrl.getListEvents(ctrl.synchronisation.listevents)"></div>
+		<input type="checkbox" ng-model="ctrl.showreport">Detail report
+		<div ng-if="ctrl.showreport">
+			<textarea ng-model="ctrl.synchronisation.report" rows="20" style="width:100%;" readonly></textarea>
+		</div>
+	</div>
 
 	
+	<!--  ************************************************************  -->	
+	<!--  parameter 		 										-->
+	<!--  ************************************************************  -->		
+	<div class="bs-component" ng-if="ctrl.navbaractiv == 'Parameters'">		
+		<p>
+		<!--  --------------------------------------------------------- Source -->
+		<table class="table table-striped table-hover">
+			<tbody ng-repeat="source in ctrl.config.sources track by $index">
+				<tr>
+					<td colspan="3" style="background-color:aliceblue">
+						{{source.title}}
+						<span class="explanation">{{source.explanation}}</span><p>
+
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Name:
+					</td>
+					<td>
+						<input type="text" ng-model="source.displayname" size="30" ng-disabled="ctrl.config.wait">
+						<button ng-click="ctrl.removeOneSource( source )"  class="btn btn-danger btn-xs" ng-disabled="ctrl.config.wait">Remove</button>
+					</td>
+				</tr>
+				<tr ng-show="source.type=='Dir'">
+					<td>
+						Monitor Directory:
+					</td>
+					<td>
+						<input type="text" ng-model="source.directory" size="60" ng-disabled="ctrl.config.wait">
+					</td>
+				</tr>
+				
+				<tr ng-show="source.type=='BCD'">
+					<td>
+						Target Directory:
+					</td>
+					<td>
+					 	<input type="text" ng-model="source.directory" size="60" ng-disabled="ctrl.config.wait">
+					</td>
+				</tr>
+				
+				
+				<tr ng-show="source.type=='Bonita'">
+					<td>
+						<span class="explanation">The external Bonita Server is called, and the artifacts are compare to the local server. All new artifact are loaded.</span><p>
+						<table>
+						<tr><td>Bonita server Host:</td><td> <input type="text" ng-model="source.host"  ></td></tr>
+						<tr><td>Bonita server Port:</td><td> <input type="text" ng-model="source.port" ></td></tr>
+						<tr><td>Login:</td><td> <input type="text" ng-model="source.login" ></td></tr>
+						<tr><td>Password:</td><td> <input type="password" ng-model="source.password" ></td></tr>
+						<tr><td colspan="2">
+							<button ng-click="ctrl.testConnection( source )"  class="btn btn-primary btn-xs">Test connection</button>
+							<div ng-bind-html="ctrl.getListEvents(source.listevents)"></div>
+						
+						</table>
+					</td>
+					<td>
+						<button ng-click="ctrl.removeOneSource( source )"  class="btn btn-danger btn-xs" ng-disabled="ctrl.config.wait">Remove</button>
+					</td>
+				</tr>
+			</tbody>		
+		</table>
+		
+			
+		
+		Add a source:
+		<select ng-model="ctrl.config.toadd" style="width: 150px;" ng-disabled="ctrl.config.wait">
+				<option ng-repeat="oneconf in ctrl.config.options" value="{{oneconf.type}}">{{oneconf.name}}</option>
+		</select>
+		<button ng-click="ctrl.addOneSource( ctrl.config.toadd )"  class="btn btn-primary btn-xs"  ng-disabled="ctrl.config.wait">Add</button>
+		
+		<!--  --------------------------------------------------------- Frequency 
+			<legend class="text-primary">Frequency</legend>
+			<input type="checkbox" ng-model="ctrl.frequency.active">Active<p>
+			<span class="explanation">Active and fix the frequency of the verification</span><p>
+			Months <input type="number" ng-model="ctrl.frequency.months" ng-disabled="!ctrl.frequency.active" size="3">
+			Days <input type="number" ng-model="ctrl.frequency.days" ng-disabled="!ctrl.frequency.active" size="3">
+			Hours <input type="number" ng-model="ctrl.frequency.hours" ng-disabled="!ctrl.frequency.active" size="3">
+			Minutes <input type="number" ng-model="ctrl.frequency.minutes" ng-disabled="!ctrl.frequency.active" size="3">
+			Seconds <input type="number" ng-model="ctrl.frequency.secondes" ng-disabled="!ctrl.frequency.active" size="3">
+			-->
+			
+			<!--  --------------------------------------------------------- Content -->
+			<legend class="text-primary">Content</legend>
+	
+			<table>
+			<tr>
+			<td style="padding-left:10px;vertical-align:top"><input type="checkbox" ng-model="ctrl.config.content.layout"  		>Layout</input></td>
+			<td style="padding-left:10px;vertical-align:top"><input type="checkbox" ng-model="ctrl.config.content.theme"    		>Theme</input></td>
+			<td style="padding-left:10px;vertical-align:top"><input type="checkbox" ng-model="ctrl.config.content.lookandfeel" 	>Look and feel</input></td>
+			<!-- <input type="checkbox" ng-model="ctrl.config.content.bdm"			ng-disabled="1==1">Business Data Model</input>-->			
+			<td style="padding-left:10px;vertical-align:top"><input type="checkbox" ng-model="ctrl.config.content.organization" 	>Organization</input></td>
+			<td style="padding-left:10px;vertical-align:top"><input type="checkbox" ng-model="ctrl.config.content.restapi"		>RestAPI</input></td>
+			<td style="padding-left:10px;vertical-align:top"><input type="checkbox" ng-model="ctrl.config.content.custompage"     	>Pages</input></td>
+			<td style="padding-left:10px;vertical-align:top"><input type="checkbox" ng-model="ctrl.config.content.process"		>Process</input><br>
+				<input type="checkbox" ng-model="ctrl.config.content.processenable"			ng-disabled="!ctrl.config.content.process"	> Enabled immediately the process<br>
+				<input type="checkbox" ng-model="ctrl.config.content.processmanageractor"	ng-disabled="!ctrl.config.content.process"	> Actor 'ProcessManager' is used to generate the Process Manager<br>
+				<input type="checkbox" ng-model="ctrl.config.content.processcategory"		ng-disabled="!ctrl.config.content.process"> In the process's description, 'Category:<Name>,<Name>' are exploded to register the process in category
+			</td>
+			
+			<td style="padding-left:10px;vertical-align:top"><input type="checkbox" ng-model="ctrl.config.content.profile"		>Profiles</input></td>
+			<td style="padding-left:10px;vertical-align:top"><input type="checkbox" ng-model="ctrl.config.content.livingapp"		>Living Application</input></td>
+			</tr>
+			<tr><td colspan="9"><button ng-click="ctrl.checkContent( true )"  class="btn btn-info btn-xs" style="width:100%">Check All</button></td></tr>
+			</table>
+						
+			
+			
+			<p>
+			
+			<center>
+			<span ng-show="ctrl.synchronisation.wait"> 
+				<span class="Loading">.</span> 
+			</span>
+			<button ng-click="ctrl.saveConfiguration()"  class="btn btn-success" ng-disabled="ctrl.config.wait">Save</button>
+		</center>
+			
+						
+			<div ng-bind-html="ctrl.getListEvents(ctrl.config.listevents)"></div>
+		</div>	
 
 </div>
 
@@ -257,8 +307,6 @@
 
 <script src="js/bootstrap.min.js"></script>
 <script src="js/angular-sanitize.min.js"></script>
-<script src="js/angular-file-upload.js"></script>
-<script src="js/ng-google-chart.js"></script>
 
 
 <!-- Application dependencies -->

@@ -1,6 +1,5 @@
 package org.bonitasoft.forklift;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,12 +11,7 @@ import org.bonitasoft.log.event.BEvent;
 import org.bonitasoft.log.event.BEvent.Level;
 import org.bonitasoft.log.event.BEventFactory;
 import org.bonitasoft.properties.BonitaProperties;
-import org.bonitasoft.store.BonitaStore;
-import org.bonitasoft.store.BonitaStoreAPI;
 import org.bonitasoft.store.BonitaStoreAccessor;
-import org.bonitasoft.store.BonitaStoreDirectory;
-import org.bonitasoft.store.BonitaStoreFactory;
-import org.bonitasoft.store.artifact.Artifact;
 import org.bonitasoft.store.artifactdeploy.DeployStrategy.DeployOperation;
 import org.json.simple.JSONValue;
 
@@ -74,17 +68,24 @@ public class ForkliftAPI {
 		{ return report.toString(); }
 		public Object toJsonObject()
 		{
-			Map<String,Object> mapJson = new HashMap<String,Object>();
+			Map<String,Object> mapJson = new HashMap<>();
 			mapJson.put("report", report.toString());				
 
-			List<Map<String,Object>> listDeployItem = new ArrayList<Map<String,Object>>();
+			List<Map<String,Object>> listDeployItem = new ArrayList<>();
 			mapJson.put("items",listDeployItem);
 			for (DeployOperation deployAnalysis : listDeployAnalysis )
 			{
-				Map<String,Object> mapDeployItem = new HashMap<String,Object>();
+				Map<String,Object> mapDeployItem = new HashMap<>();
 				listDeployItem.add(mapDeployItem);
 				mapDeployItem.put("type", deployAnalysis.artifact.getType().toString());
 				mapDeployItem.put("name", deployAnalysis.artifact.getName());
+                mapDeployItem.put("bonitaname", deployAnalysis.artifact.getBonitaName());
+                mapDeployItem.put("bonitastore", deployAnalysis.artifact.getStore().getName() );
+                String displayName=deployAnalysis.artifact.getStore().getDisplayName();
+                if (displayName==null || displayName.trim().isEmpty())
+                    displayName = deployAnalysis.artifact.getStore().getName();
+                mapDeployItem.put("bonitastoredisplayname", displayName );
+                
 				mapDeployItem.put("version", deployAnalysis.artifact.getVersion());
 				mapDeployItem.put("date", sdf.format( deployAnalysis.artifact.getDate()));
 				if (deployAnalysis.deploymentStatus!=null)
@@ -97,8 +98,8 @@ public class ForkliftAPI {
 				mapDeployItem.put("report", deployAnalysis.report);				
 				mapDeployItem.put("presentversion", deployAnalysis.presentVersionArtifact);
 				mapDeployItem.put("presentdate", (deployAnalysis.presentDateArtifact==null) ? null : sdf.format( deployAnalysis.presentDateArtifact));
-				if (deployAnalysis.listEvents!=null)
-					mapDeployItem.put("listevents", BEventFactory.getHtml(deployAnalysis.listEvents) );
+				if (deployAnalysis.listEvents!=null && ! deployAnalysis.listEvents.isEmpty())
+					mapDeployItem.put("listevents", BEventFactory.getSyntheticHtml(deployAnalysis.listEvents) );
 					
 			}
 			return mapJson;
@@ -161,141 +162,48 @@ public class ForkliftAPI {
 	 * *************************************************************************
 	 * **
 	 */
-	private final static String cstConfigSources = "sources";
-	private final static String cstConfigContent = "content";
-
-	public static class ConfigurationSet {
-		public List<BonitaStore> listSources = new ArrayList<>();
-		
-		public Map<String, Boolean> contentMap;
-
-		public List<BEvent> listEvents;
-
-		public List<Map<String,Object>> listActions;
-		
-		public void setActions(String jsonSt)
-		{
-			final Object jsonObject = JSONValue.parse(jsonSt);
-			if (jsonObject instanceof List)
-			{
-				listActions = (List) jsonObject;
-			}
-		}
-		
-		public Object toJsonObject() {
-			Map<String, Object> mapSet = new HashMap<>();
-
-			List<Map<String, Object>> listMap = new ArrayList<>();
-			for (BonitaStore source : listSources)
-				listMap.add(source.toMap());
-			mapSet.put(cstConfigSources, listMap);
-
-			/*
-			 * Map<String,Object> contentMap = new HashMap<String,Object>();
-			 * contentMap.put("organization", contentOrganization);
-			 * contentMap.put("layout", contentLayout);
-			 * contentMap.put("theme",contentTheme);
-			 * contentMap.put("pages",contentPages);
-			 * contentMap.put("restapi",contentRestapi);
-			 * contentMap.put("profile",contentProfile);
-			 * contentMap.put("livingapp",contentLivingapp);
-			 * contentMap.put("bdm",contentBdm);
-			 * contentMap.put("process",contentProcess);
-			 */
-
-			mapSet.put(cstConfigContent, contentMap);
-			return mapSet;
-		}
-
-		/**
-		 * This method is call from the configuration, oposite of the toJsonObject
-		 * @param configMap
-		 */
-		public void fromJsonObject(Map<String, Object> configMap) {
-			List<Map<String,Object>> listSourceOb = (List) configMap.get(cstConfigSources);
-			BonitaStoreAPI bonitaStoreAPI = BonitaStoreAPI.getInstance(); 
-			BonitaStoreFactory bonitaStoreFactory = bonitaStoreAPI.getBonitaStoreFactory();
-			for (Map<String,Object> source : listSourceOb) {
-			    BonitaStore store = bonitaStoreFactory.getBonitaStore(source);
-			    /*
-			    String type = Toolbox.getString(sourceOb.get(BonitaStoreType"type"), null);
-			    if ("DIR".equals(type))
-			    {
-			        File pathDirectory = new File(Toolbox.getString(sourceOb.get("directory"), null));
-			        source = bonitaStoreFactory.getDirectoryStore(pathDirectory, true);
-			    }
-			    */
-			    if (source!=null)
-			        listSources.add(store);
-			}
-			contentMap = (Map) configMap.get(cstConfigContent);
-			/*
-			 * contentOrganization = (Boolean) contentMap.get("organization");
-			 * contentLayout = (Boolean) contentMap.get("layout"); contentTheme=
-			 * (Boolean) contentMap.get("theme"); contentPages= (Boolean)
-			 * contentMap.get("pages"); contentRestapi= (Boolean)
-			 * contentMap.get("restapi"); contentProfile= (Boolean)
-			 * contentMap.get("profile"); contentLivingapp= (Boolean)
-			 * contentMap.get("livingapp"); contentBdm = (Boolean)
-			 * contentMap.get("bdm"); contentProcess=(Boolean)
-			 * contentMap.get("process");
-			 */
-		}
-
-		public final static String CST_JSON_TYPESOURCE= BonitaStore.CST_BONITA_STORE_TYPE;
-		public final static String CST_JSON_TYPESOURCE_DIR= BonitaStoreDirectory.CST_TYPE_DIR;
-		
-        
-		/**
-		 * Configuration is load from the page
-		 * @param configMap
-		 */
-		  public void fromPage(Map<String, Object> configMap) {
-	            List<Map<String,Object>> listSourceOb = (List) configMap.get(cstConfigSources);
-	            BonitaStoreAPI bonitaStoreAPI = BonitaStoreAPI.getInstance(); 
-	            BonitaStoreFactory bonitaStoreFactory = bonitaStoreAPI.getBonitaStoreFactory();
-	            for (Map<String,Object> source : listSourceOb) {
-	                
-	                BonitaStore store=null;
-	                String type = Toolbox.getString(source.get( CST_JSON_TYPESOURCE ), null);
-	                if (CST_JSON_TYPESOURCE_DIR.equals(type))
-	                {
-	                    File pathDirectory = new File(Toolbox.getString(source.get("directory"), null));
-	                    store = bonitaStoreFactory.getDirectoryStore(pathDirectory, true);
-	                }
-	                
-	                if (source!=null)
-	                    listSources.add(store);
-	            }
-	            contentMap = (Map) configMap.get(cstConfigContent);
-		  }
-		  
-		/**
-		 * administrator give the list of all artifact which can be
-		 * synchronized.
-		 * 
-		 * @param artefact
-		 * @return
-		 */
-		public boolean isContentAllow(Artifact artefact) {
-			Boolean contentArtefact = (Boolean) contentMap.get( artefact.getType().toString().toLowerCase() );
-			return (contentArtefact == null) ? false : contentArtefact;
-		}
-		public Map<String, Boolean> getContentAllow()
-		{
-			return contentMap;
-		}
-
-	}
+	final static String cstConfigSources = "sources";
+	final static String cstConfigContent = "content";
 
 	private static String cstPropertiesSource = "sources";
 
-	public ConfigurationSet loadConfiguration(String name, String pageName, long tenantId) {
+	/**
+	 * 
+	 * @param name
+	 * @param pageName
+	 * @param tenantId
+	 * @return
+	 */
+	public ConfigurationSet init(String name, String pageName, long tenantId) {
+	       return loadConfiguration(name, pageName, tenantId,true);
+	}
+
+	/**
+	 * 
+	 * @param name
+	 * @param pageName
+	 * @param tenantId
+	 * @return
+	 */
+    public ConfigurationSet loadConfiguration(String name, String pageName, long tenantId) {
+        return loadConfiguration(name, pageName, tenantId,false);
+    }
+    
+    /**
+     * Internal
+     * @param name
+     * @param pageName
+     * @param tenantId
+     * @param checkDatabase
+     * @return
+     */
+    private ConfigurationSet loadConfiguration(String name, String pageName, long tenantId, boolean checkDatabase) {
 		logger.info("ForkliftAPI.loadSource ~~~~~~~~");
 
 		ConfigurationSet configurationSet = new ConfigurationSet();
 		BonitaProperties bonitaProperties = new BonitaProperties(pageName, tenantId);
-
+		bonitaProperties.setCheckDatabase(checkDatabase);
+		
 		configurationSet.listEvents = bonitaProperties.load();
 		if (BEventFactory.isError(configurationSet.listEvents)) {
 			logger.info("ForkliftAPI.loadSource  Error load properties :" + configurationSet.listEvents);
@@ -307,7 +215,7 @@ public class ForkliftAPI {
 			Object configOb = (configSt != null && configSt.length() > 0) ? JSONValue.parse(configSt) : null;
 			if (configOb == null)
 				return configurationSet; // empty
-			Map<String, Object> configMap = (Map) configOb;
+			Map<String, Object> configMap = (Map<String, Object>) configOb;
 			configurationSet.fromJsonObject(configMap);
 		} catch (Exception e) {
 			logger.info("ForkliftAPI.loadSource listSource is not a MAP [" + configSt + "] class=" + configSt.getClass().getName());
@@ -330,6 +238,7 @@ public class ForkliftAPI {
 	public List<BEvent> saveConfiguration(String name, ConfigurationSet configurationSet, String pageName, long tenantId) {
 		logger.info("ForkliftAPI.saveSource ~~~~~~~~");
 		BonitaProperties bonitaProperties = new BonitaProperties(pageName, tenantId);
+        bonitaProperties.setCheckDatabase(false);
 
 		List<BEvent> listEvents = bonitaProperties.load();
 		if (BEventFactory.isError(listEvents)) {
