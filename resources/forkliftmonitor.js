@@ -36,7 +36,15 @@ appCommand.controller('ForkLiftControler',
 						{'name':'BCD', 
 							'type':'BCD',
 							'title':'Bonita Continous Delivery (BCD)',
-							'explanation': 'Specify the Target directory of BCD'}], 
+							'explanation': 'Specify the Target directory of BCD'
+						},
+						{'name':'Bonita Server', 
+							'type':'BonitaServer',
+							'title':'Bonita Server',
+							'explanation': 'Specify an external Bonita server'
+						}
+						
+						], 
 					'toadd': 'Dir',
 					
 	}
@@ -78,17 +86,15 @@ appCommand.controller('ForkLiftControler',
 		var index = this.config.sources.indexOf( source);
 		this.config.sources.splice(index, 1); 
 	}
-	this.testConnection = function( source)
-	{
-		alert("Not yet implemented");
-	}
+	
 		
 	// load sources
 	this.init = function () 
 	{
 		this.config.listevents='';
-		this.config.wait=true;
 		var self=this;
+		self.wait=true;
+
 		$http.get( '?page=custompage_forklift&action=init&t='+Date.now()  )
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
@@ -96,7 +102,7 @@ appCommand.controller('ForkLiftControler',
 					console.log("Redirected to the login page ! statusHttp="+statusHttp+" jsonResult="+jsonResult);
 					window.location.reload();
 				}
-				self.config.wait=false;
+				self.wait=false;
 				self.config.sources = jsonResult.sources;
 				if (! self.config.sources)
 					self.config.sources=[];
@@ -109,7 +115,7 @@ appCommand.controller('ForkLiftControler',
 				self.config.listevents= jsonResult.listevents; 
 			})
 			.error( function ( jsonResult ) {
-				self.config.wait=false;
+				self.wait=false;
 			});
 	
 	}
@@ -126,7 +132,7 @@ appCommand.controller('ForkLiftControler',
 		var param = { "sources": this.config.sources, 'content': this.config.content };
 		var json = encodeURI( angular.toJson( param, false));
 		this.config.listevents='';
-		this.config.wait=true;
+		this.wait=true;
 		var self=this;
 		$http.get( '?page=custompage_forklift&action=saveConfiguration&paramjson='+json+'&t='+Date.now()  )
 			.success( function ( jsonResult, statusHttp, headers, config ) {
@@ -136,15 +142,46 @@ appCommand.controller('ForkLiftControler',
 
 					window.location.reload();
 				}
-				self.config.wait=false;
+				self.wait=false;
 				self.config.listevents= jsonResult.listevents; 
 				console.log("Save list events="+jsonResult.listevents);
 			})
 			.error( function ( jsonResult ) {
-				self.config.wait=false;
+				self.wait=false;
 			});
 	}
 		
+	this.testConnection = function( source)
+	{
+		this.config.listevents='';
+		this.wait=true;
+		var self=this;
+		var param = { "source": source };
+		var json = encodeURI( angular.toJson( param, false));
+		$http.get( '?page=custompage_forklift&action=testconnection&paramjson='+json+'&t='+Date.now()  )
+			.success( function ( jsonResult, statusHttp, headers, config ) {
+				// connection is lost ?
+				if (statusHttp==401 || typeof jsonResult === 'string') {
+					console.log("Redirected to the login page ! statusHttp="+statusHttp+" jsonResult="+jsonResult);
+					window.location.reload();
+				}
+				self.wait=false;
+				self.config.sources = jsonResult.sources;
+				if (! self.config.sources)
+					self.config.sources=[];
+				if (self.config.sources.length==0)
+					self.showsources=true;
+				
+				self.config.content = jsonResult.content;
+				if (!self.config.content)
+					self.config.content={};
+				self.config.listevents= jsonResult.listevents; 
+			})
+			.error( function ( jsonResult ) {
+				self.wait=false;
+			});
+	}	
+	
 	this.checkContent = function( checkPlease )
 	{
 		this.config.content.organization=checkPlease;
@@ -164,7 +201,8 @@ appCommand.controller('ForkLiftControler',
 	// -------------------------------------
 	// Operation
 	// -------------------------------------
-	this.synchronisation={ 'wait': false, 'listevents':'', 'report':''};
+	this.wait=false;
+	this.synchronisation={ 'listevents':'', 'report':''};
 	this.synchronisation.actions = [
 		{ 'type': 'DEPLOY', 'name':'Deploy'},
 		{ 'type': 'IGNORE', 'name':'Ignore'},
@@ -174,7 +212,7 @@ appCommand.controller('ForkLiftControler',
 	this.synchronisationDetect = function()
 	{
 		var self=this;
-		self.synchronisation.wait=true;
+		self.wait=true;
 		self.synchronisation.listevents='';
 		self.synchronisation.report='';
 		$http.get( '?page=custompage_forklift&action=synchronisationdetect'+'&t='+Date.now()  )
@@ -185,13 +223,13 @@ appCommand.controller('ForkLiftControler',
 
 					window.location.reload();
 				}
-				self.synchronisation.wait=false;
+				self.wait=false;
 				self.synchronisation.listevents= jsonResult.listevents;
 				self.synchronisation.detection= jsonResult.detection;
 				self.synchronisation.report= jsonResult.detection.report;
 			})
 			.error( function ( jsonResult ) {
-				self.synchronisation.wait=false;
+				self.wait=false;
 			});
 		
 		
@@ -199,7 +237,7 @@ appCommand.controller('ForkLiftControler',
 	this.synchronisationExecute = function()
 	{
 		var self=this;
-		self.synchronisation.wait=true;
+		self.wait=true;
 		self.synchronisation.listevents='';
 		self.synchronisation.report='';
 		// create a short list
@@ -227,7 +265,7 @@ appCommand.controller('ForkLiftControler',
 	 * 
 	 */
 	this.afterSynchronisationexecute = function ( jsonResult ) {
-		this.synchronisation.wait=false;
+		this.wait=false;
 		this.synchronisation.listevents= jsonResult.listevents;
 		this.synchronisation.report= jsonResult.detection.report;
 

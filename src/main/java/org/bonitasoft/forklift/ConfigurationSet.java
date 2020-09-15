@@ -72,14 +72,6 @@ public class ConfigurationSet {
 		BonitaStoreFactory bonitaStoreFactory = bonitaStoreAPI.getBonitaStoreFactory();
 		for (Map<String,Object> sourceMap : listSourceOb) {
 		    BonitaStore store = bonitaStoreFactory.getBonitaStore(sourceMap);
-		    /*
-		    String type = Toolbox.getString(sourceOb.get(BonitaStoreType"type"), null);
-		    if ("DIR".equals(type))
-		    {
-		        File pathDirectory = new File(Toolbox.getString(sourceOb.get("directory"), null));
-		        source = bonitaStoreFactory.getDirectoryStore(pathDirectory, true);
-		    }
-		    */
 		    if (store!=null)
 		        listSources.add(store);
 		}

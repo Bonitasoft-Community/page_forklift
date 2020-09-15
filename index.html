@@ -45,7 +45,7 @@
 	<div class="bs-component" >
 		<center>
 		<table><tr><td><h1>Forklift</h1></td><td rowspan="2"><img src="img/forklift.jpg" width="150" heigth="150" /></td></tr>
-			<tr><td style="font-size:0.8em"> V1.5.0 Sept 2 2020</td></tr>
+			<tr><td style="font-size:0.8em"> V1.6.1 Sept 15 2020</td></tr>
 			<tr><td>
 				
 			</td></tr>
@@ -77,10 +77,10 @@
 		
 		
 		<center>
-			<span ng-show="ctrl.synchronisation.wait"> 
+			<span ng-if="ctrl.wait"> 
 				<span class="Loading">.</span> 
 			</span>
-			<button ng-click="ctrl.synchronisationDetect()"  class="btn btn-info" ng-disabled="ctrl.synchronisation.wait">Detection</button><p>
+			<button ng-click="ctrl.synchronisationDetect()"  class="btn btn-info" ng-disabled="ctrl.wait">Detection</button><p>
 		</center>
 		
 		<!--  what to display -->
@@ -114,7 +114,10 @@
 				<td><a title="Store: {{item.bonitastoredisplayname}}">{{item.bonitaname}}</a></td>
 				<td style="font-size: 10px">{{item.version}}</td>
 				<td style="font-size: 10px">{{item.date}}</td>
-				<td>{{item.report}}</td>
+				<td>{{item.analysis}}
+					<a ng_click="item.showinfo = ! item.showinfo"><span class="glyphicon glyphicon-info-sign"></span></a>
+					<div ng-if="item.showinfo" class="well well-sm" style="font-size: 10px;">{{item.loganalysis}}</div>
+				</td>
 				<td style="background:#fcf8e3;font-size: 10px">{{item.presentversion}}</td>
 				<td style="background:#fcf8e3;font-size: 10px">{{item.presentdate}}</td>
 				<td>
@@ -126,24 +129,24 @@
 				</td>
 					
 				<td>
-					<div ng-show="item.invaliddecision == true">
+					<div ng-if="item.invaliddecision == true">
 						Done
 					</div>
-					<div ng-show="! item.invaliddecision == true">					
+					<div ng-if="! item.invaliddecision == true">					
 						<select ng-model="item.action" style="width: 150px;">
 							<option ng-repeat="onestatus in ctrl.synchronisation.actions" value="{{onestatus.type}}" ng-selected="item.action==onestatus.type">{{onestatus.name}}</option>
 						</select>
 					</div>
 					<br>
 					
-						<span ng-show="item.deploystatus=='NOTHINGDONE'" class="label label-warning">Nothing done</span>
-						<span ng-show="item.deploystatus=='NEWALREADYINPLACE'" class="label label-warning">New already in place</span>
-						<span ng-show="item.deploystatus=='REMOVEFAIL'" class="label label-danger">Remove failed done</span>
-						<span ng-show="item.deploystatus=='LOADFAILED'" class="label label-danger">Load failed</span>
-						<span ng-show="item.deploystatus=='DEPLOYEDFAILED'" class="label label-danger">Deployment failed</span>
-						<span ng-show="item.deploystatus=='LOADED'" class="label label-info">Loaded (deployed, not enabled)</span>
-						<span ng-show="item.deploystatus=='DEPLOYED'" class="label label-success">Deployed</span>
-						<span ng-show="item.deploystatus=='DELETED'" class="label label-success">Removed</span>
+						<span ng-if="item.deploystatus=='NOTHINGDONE'" class="label label-warning">Nothing done</span>
+						<span ng-if="item.deploystatus=='NEWALREADYINPLACE'" class="label label-warning">New already in place</span>
+						<span ng-if="item.deploystatus=='REMOVEFAIL'" class="label label-danger">Remove failed done</span>
+						<span ng-if="item.deploystatus=='LOADFAILED'" class="label label-danger">Load failed</span>
+						<span ng-if="item.deploystatus=='DEPLOYEDFAILED'" class="label label-danger">Deployment failed</span>
+						<span ng-if="item.deploystatus=='LOADED'" class="label label-info">Loaded (deployed, not enabled)</span>
+						<span ng-if="item.deploystatus=='DEPLOYED'" class="label label-success">Deployed</span>
+						<span ng-if="item.deploystatus=='DELETED'" class="label label-success">Removed</span>
 						
 						
 				
@@ -154,11 +157,11 @@
 			</tbody>
 		</table>
 		<center>
-			<span ng-show="ctrl.synchronisation.wait"> 
+			<span ng-if="ctrl.wait"> 
 				<span class="Loading">.</span> 
 			</span>
 		
-			<button ng-click="ctrl.synchronisationExecute()"  class="btn btn-warning" ng-disabled="ctrl.synchronisation.wait">Apply</button><p>
+			<button ng-click="ctrl.synchronisationExecute()"  class="btn btn-warning" ng-disabled="ctrl.wait">Apply</button><p>
 		</center>
 		
 		<div ng-bind-html="ctrl.getListEvents(ctrl.synchronisation.listevents)"></div>
@@ -179,9 +182,9 @@
 			<tbody ng-repeat="source in ctrl.config.sources track by $index">
 				<tr>
 					<td colspan="3" style="background-color:aliceblue">
-						{{source.title}}
+						<h4>{{source.name}}</h4>
 						<span class="explanation">{{source.explanation}}</span><p>
-
+					
 					</td>
 				</tr>
 				<tr>
@@ -189,57 +192,67 @@
 						Name:
 					</td>
 					<td>
-						<input type="text" ng-model="source.displayname" size="30" ng-disabled="ctrl.config.wait">
-						<button ng-click="ctrl.removeOneSource( source )"  class="btn btn-danger btn-xs" ng-disabled="ctrl.config.wait">Remove</button>
+						<input type="text" ng-model="source.displayname" size="30" ng-disabled="ctrl.wait">
+						<button ng-click="ctrl.removeOneSource( source )"  class="btn btn-danger btn-xs" ng-disabled="ctrl.wait">Remove</button>
 					</td>
 				</tr>
-				<tr ng-show="source.type=='Dir'">
+				<tr ng-if="source.type=='Dir'">
 					<td>
 						Monitor Directory:
 					</td>
 					<td>
-						<input type="text" ng-model="source.directory" size="60" ng-disabled="ctrl.config.wait">
+						<input type="text" ng-model="source.directory" size="60" ng-disabled="ctrl.wait">
 					</td>
 				</tr>
 				
-				<tr ng-show="source.type=='BCD'">
+				<tr ng-if="source.type=='BCD'">
 					<td>
 						Target Directory:
 					</td>
 					<td>
-					 	<input type="text" ng-model="source.directory" size="60" ng-disabled="ctrl.config.wait">
+					 	<input type="text" ng-model="source.directory" size="60" ng-disabled="ctrl.wait">
 					</td>
 				</tr>
 				
 				
-				<tr ng-show="source.type=='Bonita'">
-					<td>
-						<span class="explanation">The external Bonita Server is called, and the artifacts are compare to the local server. All new artifact are loaded.</span><p>
-						<table>
-						<tr><td>Bonita server Host:</td><td> <input type="text" ng-model="source.host"  ></td></tr>
-						<tr><td>Bonita server Port:</td><td> <input type="text" ng-model="source.port" ></td></tr>
-						<tr><td>Login:</td><td> <input type="text" ng-model="source.login" ></td></tr>
-						<tr><td>Password:</td><td> <input type="password" ng-model="source.password" ></td></tr>
-						<tr><td colspan="2">
+				<tr ng-if="source.type=='BonitaServer'">
+					<td>Protocole (http, https..):</td><td> <input type="text" ng-model="source.protocole"  ></td>
+				</tr>		
+				<tr ng-if="source.type=='BonitaServer'">
+					<td>Host:</td><td> <input type="text" ng-model="source.host" size="60"  ></td>
+				</tr>		
+				<tr ng-if="source.type=='BonitaServer'">
+					<td>Port:</td><td> <input type="number" ng-model="source.port" ></td>
+				</tr>		
+				<tr ng-if="source.type=='BonitaServer'">
+					<td>Login:</td><td> <input type="text" ng-model="source.login" ></td>
+				</tr>		
+				<tr ng-if="source.type=='BonitaServer'">
+					<td>Password:</td><td> <input type="password" ng-model="source.password" ></td>
+				</tr>		
+				<tr ng-if="source.type=='BonitaServer'">
+					<td>Scope :<br>
+						(only artifact deployed AFTER this delay)
+					</td><td style="vertical-align:top"> <input type="number" ng-model="source.scopeinhour" > hours</td>
+				</tr>
+				<!-- 		
+				<tr ng-if="source.type=='BonitaServer'">
+					<td colspan="2">
 							<button ng-click="ctrl.testConnection( source )"  class="btn btn-primary btn-xs">Test connection</button>
 							<div ng-bind-html="ctrl.getListEvents(source.listevents)"></div>
-						
-						</table>
-					</td>
-					<td>
-						<button ng-click="ctrl.removeOneSource( source )"  class="btn btn-danger btn-xs" ng-disabled="ctrl.config.wait">Remove</button>
-					</td>
+					</td>					
 				</tr>
+				 -->
 			</tbody>		
 		</table>
 		
 			
 		
 		Add a source:
-		<select ng-model="ctrl.config.toadd" style="width: 150px;" ng-disabled="ctrl.config.wait">
+		<select ng-model="ctrl.config.toadd" style="width: 150px;" ng-disabled="ctrl.wait">
 				<option ng-repeat="oneconf in ctrl.config.options" value="{{oneconf.type}}">{{oneconf.name}}</option>
 		</select>
-		<button ng-click="ctrl.addOneSource( ctrl.config.toadd )"  class="btn btn-primary btn-xs"  ng-disabled="ctrl.config.wait">Add</button>
+		<button ng-click="ctrl.addOneSource( ctrl.config.toadd )"  class="btn btn-primary btn-xs"  ng-disabled="ctrl.wait">Add</button>
 		
 		<!--  --------------------------------------------------------- Frequency 
 			<legend class="text-primary">Frequency</legend>
@@ -281,10 +294,10 @@
 			<p>
 			
 			<center>
-			<span ng-show="ctrl.synchronisation.wait"> 
+			<span ng-show="ctrl.wait"> 
 				<span class="Loading">.</span> 
 			</span>
-			<button ng-click="ctrl.saveConfiguration()"  class="btn btn-success" ng-disabled="ctrl.config.wait">Save</button>
+			<button ng-click="ctrl.saveConfiguration()"  class="btn btn-success" ng-disabled="ctrl.wait">Save</button>
 		</center>
 			
 						

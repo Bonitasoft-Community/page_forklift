@@ -31,6 +31,7 @@ import org.bonitasoft.store.artifact.ArtifactProcess;
 import org.bonitasoft.store.artifact.ArtifactProfile;
 import org.bonitasoft.store.artifact.ArtifactRestApi;
 import org.bonitasoft.store.artifact.ArtifactTheme;
+import org.bonitasoft.store.artifact.FactoryArtifact.ArtifactResult;
 import org.bonitasoft.store.artifactdeploy.DeployStrategy.Action;
 import org.bonitasoft.store.artifactdeploy.DeployStrategy.DeployOperation;
 import org.bonitasoft.store.artifactdeploy.DeployStrategy.DeploymentStatus;
@@ -80,45 +81,50 @@ public class Synchronize {
             if (BEventFactory.isError(listEvents))
                 continue;
    
-            BonitaStoreResult listArtifacts = bonitaStore.getListArtifacts(detectionParameters, loggerStore);
+            BonitaStoreResult storeResult = bonitaStore.getListArtifacts(detectionParameters, loggerStore);
 
-            orderArtefacts(listArtifacts);
+            orderArtefacts(storeResult);
 
             if (configurationSet.contentMap.size() == 0) {
                 resultSynchronization.addReportLine(" Scope is empty, nothing will be managed");
             }
 
-            for (Artifact artifact : listArtifacts.listArtifacts) {
+            for (ArtifactResult artifactResult : storeResult.listArtifacts) {
                 // if the configuration allow this artifact ?
-                if (!configurationSet.isContentAllow(artifact)) {
-                    resultSynchronization.addReportLine("Artifact [" + artifact.getType() + " " + artifact.getName() + "] detected, but this type is not in the scope.");
+                if (!configurationSet.isContentAllow(artifactResult.artifact)) {
+                    resultSynchronization.addReportLine("Artifact [" + artifactResult.artifact.getType() + " " + artifactResult.artifact.getName() + "] detected, but this type is not in the scope.");
 
                 } else {
-                    Long nb = numberPerContent.get(artifact.getType().toString().toLowerCase());
-                    numberPerContent.put(artifact.getType().toString().toLowerCase(), nb == null ? 1L : nb + 1);
+                    Long nb = numberPerContent.get( artifactResult.artifact.getType().toString().toLowerCase());
+                    numberPerContent.put(artifactResult.artifact.getType().toString().toLowerCase(), nb == null ? 1L : nb + 1);
 
-                    resultSynchronization.addReport("  Detect " + artifact.getType().toString() + " " + artifact.getName()+"; ");
-                    DeployOperation deployOperation = artifact.detectDeployment(detectionParameters, bonitaAccessor, loggerStore);
+                    resultSynchronization.addReport("  Detect " + artifactResult.artifact.getType().toString() + " [" + artifactResult.artifact.getName()+"]; ");
+                    DeployOperation deployOperation = artifactResult.artifact.detectDeployment(detectionParameters, bonitaAccessor, loggerStore);
+                    artifactResult.logAnalysis.append( deployOperation.logAnalysis.toString());
+                    
+                    /** some artifact does not have any detection status, complete it */
                     if (deployOperation.detectionStatus == null) {
                         // create one analysis
                         if (deployOperation.presentDateArtifact == null) {
                             deployOperation.detectionStatus = DetectionStatus.NEWARTEFAC;
-                            deployOperation.report = "The artefact is new, deploy this version";
-                        } else if (deployOperation.presentDateArtifact != null && deployOperation.presentDateArtifact.equals(artifact.getDate())) {
+                            deployOperation.addAnalysisLine( "The artefact is new, deploy this version");
+                        } else if (deployOperation.presentDateArtifact != null && deployOperation.presentDateArtifact.equals(artifactResult.artifact.getDate())) {
                             deployOperation.detectionStatus = DetectionStatus.SAME;
-                            deployOperation.report = "A version exist with the same date (" + ForkliftAPI.sdf.format(artifact.getDate()) + ")";
-                        } else if (deployOperation.presentDateArtifact.before(artifact.getDate())) {
+                            deployOperation.addAnalysisLine( "A version exist with the same date (" + ForkliftAPI.sdf.format(artifactResult.artifact.getDate()) + ")");
+                        } else if (deployOperation.presentDateArtifact.before(artifactResult.artifact.getDate())) {
                             deployOperation.detectionStatus = DetectionStatus.NEWVERSION;
-                            deployOperation.report = "The version is new";
+                            deployOperation.addAnalysisLine( "The version is new" );
                         } else {
                             deployOperation.detectionStatus = DetectionStatus.OLDVERSION;
-                            deployOperation.report = "The version is older, you should ignore this one";
+                            deployOperation.addAnalysisLine( "The version is older, you should ignore this one");
                         }
                     }
                     resultSynchronization.addErrorsEvent(deployOperation.listEvents);
-                    resultSynchronization.addReportLine(deployOperation.report);
-                    deployOperation.artifact = artifact; // to be sure
-
+                    // Add the complete report line, analysis stay item per item
+                    resultSynchronization.addReportLine(deployOperation.report.toString());
+                    deployOperation.artifact = artifactResult.artifact; // to be sure
+                    deployOperation.logAnalysis = artifactResult.logAnalysis;
+                    
                     // calculate the appropriate decision
                     switch (deployOperation.detectionStatus) {
                         case NEWARTEFAC:
@@ -193,11 +199,11 @@ public class Synchronize {
                     continue;
                 
                 
-                BonitaStoreResult listArtefacts = bonitaStore.getListArtifacts(detectionParameters, loggerStore);
+                BonitaStoreResult storeResult = bonitaStore.getListArtifacts(detectionParameters, loggerStore);
 
-                orderArtefacts(listArtefacts);
+                orderArtefacts(storeResult);
 
-                for (Artifact artifact : listArtefacts.listArtifacts) {
+                for (ArtifactResult artifactResult : storeResult.listArtifacts) {
                     countDetectArtefact++;
 
                     // is this artifact is part of the listAction ?
@@ -206,9 +212,9 @@ public class Synchronize {
                     if (configurationSet.listActions != null) {
                         for (Map<String, Object> actionMap : configurationSet.listActions) {
                             TypeArtifact typeMap = TypeArtifact.valueOf((String) actionMap.get(CST_JSON_TYPEARTIFACT));
-                            if (artifact.getType().equals(typeMap)
-                                    && isEquals(artifact.getName(), (String) actionMap.get(CST_JSON_NAMEARTIFACT))
-                                    && isEquals(artifact.getVersion(), (String) actionMap.get(CST_JSON_VERSIONARTIFACT))) {
+                            if (artifactResult.artifact.getType().equals(typeMap)
+                                    && isEquals(artifactResult.artifact.getName(), (String) actionMap.get(CST_JSON_NAMEARTIFACT))
+                                    && isEquals(artifactResult.artifact.getVersion(), (String) actionMap.get(CST_JSON_VERSIONARTIFACT))) {
                                 // we get the action to do
                                 if (Action.DEPLOY.toString().equals(actionMap.get(CST_JSON_ACTION))) {
                                     allowDeployment = true;
@@ -220,21 +226,21 @@ public class Synchronize {
                             }
                         }
                     } else
-                        allowDeployment = configurationSet.isContentAllow(artifact);
+                        allowDeployment = configurationSet.isContentAllow(artifactResult.artifact);
 
                     DeployOperation deployOperation = new DeployOperation();
-                    deployOperation.artifact = artifact;
+                    deployOperation.artifact = artifactResult.artifact;
 
                     String logDeployment ="";
                     // if the configuration allow this artifact ?
                     if (allowDeployment) {
-                        logDeployment += artifact.getType() + " " + artifact.getBonitaName() + " : ";
+                        logDeployment += artifactResult.artifact.getType() + " " + artifactResult.artifact.getBonitaName() + " : ";
                         // load it ?
                         boolean continueOperation = true;
-                        if (! artifact.isLoaded())
+                        if (! artifactResult.artifact.isLoaded())
                         {
                             logDeployment += "loaded,";
-                            BonitaStoreResult bonitaStoreResult = bonitaStore.loadArtifact(artifact, UrlToDownload.LASTRELEASE, loggerStore);
+                            BonitaStoreResult bonitaStoreResult = bonitaStore.loadArtifact(artifactResult.artifact, UrlToDownload.LASTRELEASE, loggerStore);
                             if (BEventFactory.isError(bonitaStoreResult.getEvents())) {
                                 deployOperation.listEvents.addAll( bonitaStoreResult.getEvents() );
                                 deployOperation.deploymentStatus = DeploymentStatus.LOADFAILED;
@@ -244,7 +250,7 @@ public class Synchronize {
                         }
                         if (continueOperation) {
                             logDeployment += "Deploy ";
-                            DeployOperation deployOperationDeploy = artifact.deploy(detectionParameters, bonitaAccessor, loggerStore);
+                            DeployOperation deployOperationDeploy = artifactResult.artifact.deploy(detectionParameters, bonitaAccessor, loggerStore);
                             deployOperation.listEvents.addAll( deployOperationDeploy.listEvents );
                             deployOperation.deploymentStatus = deployOperationDeploy.deploymentStatus;
                             logDeployment += deployOperationDeploy.report;
@@ -296,10 +302,10 @@ public class Synchronize {
                             File destinationPath = new File( sourcePath.getAbsoluteFile()+"/archive" );
                             try {
                                 
-                                TypesCast.moveFile(  artifact.getFileName(), sourcePath, destinationPath, true);
+                                TypesCast.moveFile( artifactResult.artifact.getFileName(), sourcePath, destinationPath, true);
                                 logDeployment+="Move to archive path;";
                             }catch(Exception e ) {
-                                deployOperation.listEvents.add( new BEvent( eventCanMoveToArchive, "File["+artifact.getFileName()+"] move from["+sourcePath.getAbsolutePath()+"] to ["+destinationPath.getAbsolutePath()+"]"));
+                                deployOperation.listEvents.add( new BEvent( eventCanMoveToArchive, "File["+artifactResult.artifact.getFileName()+"] move from["+sourcePath.getAbsolutePath()+"] to ["+destinationPath.getAbsolutePath()+"]"));
                             }
                         }
                         
@@ -310,7 +316,7 @@ public class Synchronize {
                     resultSynchronization.addDetection(deployOperation);
                     
                     resultSynchronization.addReportLine(logDeployment);
-                    artifact.clean(); // remove all content to limit the memory
+                    artifactResult.artifact.clean(); // remove all content to limit the memory
                 } // end listArtefact
                 
                 // end the store
@@ -340,7 +346,7 @@ public class Synchronize {
         return false;
     }
 
-    private void orderArtefacts(BonitaStoreResult listArtefact) {
+    private void orderArtefacts(BonitaStoreResult storeResult) {
         final List<Class> listOrder = new ArrayList<Class>();
         listOrder.add(ArtifactLayout.class);
         listOrder.add(ArtifactTheme.class);
@@ -357,22 +363,22 @@ public class Synchronize {
         listOrder.add(ArtifactLivingApplication.class);
 
         // Attention, deployment must be done in a certain order
-        Collections.sort(listArtefact.listArtifacts, new Comparator<Artifact>() {
+        Collections.sort(storeResult.listArtifacts, new Comparator<ArtifactResult>() {
 
-            public int compare(Artifact s1,
-                    Artifact s2) {
+            public int compare(ArtifactResult s1,
+                    ArtifactResult s2) {
                 int rangeS1 = 0;
                 int rangeS2 = 0;
 
                 for (int i = 0; i < listOrder.size(); i++) {
-                    if (listOrder.get(i).equals(s1.getClass()))
+                    if (listOrder.get(i).equals(s1.artifact.getClass()))
                         rangeS1 = i;
-                    if (listOrder.get(i).equals(s2.getClass()))
+                    if (listOrder.get(i).equals(s2.artifact.getClass()))
                         rangeS2 = i;
                 }
                 if (rangeS1 != rangeS2)
                     return Integer.valueOf(rangeS1).compareTo(rangeS2);
-                return s1.getName().compareTo(s2.getName());
+                return s1.artifact.getName().compareTo(s2.artifact.getName());
             }
         });
     }
