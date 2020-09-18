@@ -92,13 +92,13 @@ public class Synchronize {
             for (ArtifactResult artifactResult : storeResult.listArtifacts) {
                 // if the configuration allow this artifact ?
                 if (!configurationSet.isContentAllow(artifactResult.artifact)) {
-                    resultSynchronization.addReportLine("Artifact [" + artifactResult.artifact.getType() + " " + artifactResult.artifact.getName() + "] detected, but this type is not in the scope.");
+                    resultSynchronization.addReportLine("Artifact [" + artifactResult.artifact.getType() + " " + artifactResult.artifact.getBonitaName() + "] detected, but this type is not in the scope.");
 
                 } else {
                     Long nb = numberPerContent.get( artifactResult.artifact.getType().toString().toLowerCase());
                     numberPerContent.put(artifactResult.artifact.getType().toString().toLowerCase(), nb == null ? 1L : nb + 1);
 
-                    resultSynchronization.addReport("  Detect " + artifactResult.artifact.getType().toString() + " [" + artifactResult.artifact.getName()+"]; ");
+                    resultSynchronization.addReport("  Detect " + artifactResult.artifact.getType().toString() + " [" + artifactResult.artifact.getBonitaName()+"]; ");
                     DeployOperation deployOperation = artifactResult.artifact.detectDeployment(detectionParameters, bonitaAccessor, loggerStore);
                     artifactResult.logAnalysis.append( deployOperation.logAnalysis.toString());
                     
@@ -341,8 +341,12 @@ public class Synchronize {
     private boolean isEquals(String o1, Object o2) {
         if (o1 == null && o2 == null)
             return true;
-        if (o1 != null && o2 != null)
-            return o1.equals(o2);
+        if (o1 != null && o2 != null) {
+            if (o1 instanceof String && o2 instanceof String)
+                return ((String)o1).equalsIgnoreCase( (String) o2);
+            else
+                return o1.equals(o2);
+}
         return false;
     }
 
