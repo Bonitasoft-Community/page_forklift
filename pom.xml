@@ -7,8 +7,8 @@
 	</properties>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.bonitasoft.custompage</groupId>
-	<artifactId>CustomPageForklift</artifactId>
-	<version>1.6.3</version>
+	<artifactId>bonita-forklift</artifactId>
+	<version>1.6.4</version>
 
 	<dependencies>
 		<dependency>
