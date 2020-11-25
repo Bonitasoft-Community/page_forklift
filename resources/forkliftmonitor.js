@@ -6,7 +6,7 @@
 (function() {
 
 
-var appCommand = angular.module('forkliftmonitor', ['ngSanitize']);
+var appCommand = angular.module('forkliftmonitor', ['ngSanitize', 'ngCookies']);
 
 
 
@@ -20,7 +20,7 @@ var appCommand = angular.module('forkliftmonitor', ['ngSanitize']);
 // --------------------------------------------------------------------------
 
 appCommand.controller('ForkLiftControler',
-	function ( $http, $scope, $sce ) {
+	function ( $http, $scope, $sce, $cookies ) {
 
 	this.isshowhistory=false;
 	this.showsources=false;
@@ -68,6 +68,16 @@ appCommand.controller('ForkLiftControler',
 		};
 	
 
+		this.getHttpConfig = function () {
+			var additionalHeaders = {};
+			var csrfToken = $cookies.get('X-Bonita-API-Token');
+			if (csrfToken) {
+				additionalHeaders ['X-Bonita-API-Token'] = csrfToken;
+			}
+			var config= {"headers": additionalHeaders};
+			console.log("GetHttpConfig : "+angular.toJson( config));
+			return config;
+		}
 	// -------------------------------------
 	// Source management
 	// -------------------------------------
@@ -95,7 +105,7 @@ appCommand.controller('ForkLiftControler',
 		var self=this;
 		self.wait=true;
 
-		$http.get( '?page=custompage_forklift&action=init&t='+Date.now()  )
+		$http.get( '?page=custompage_forklift&action=init&t='+Date.now(),  this.getHttpConfig()  )
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
 				if (statusHttp==401 || typeof jsonResult === 'string') {
@@ -134,7 +144,7 @@ appCommand.controller('ForkLiftControler',
 		this.config.listevents='';
 		this.wait=true;
 		var self=this;
-		$http.get( '?page=custompage_forklift&action=saveConfiguration&paramjson='+json+'&t='+Date.now()  )
+		$http.get( '?page=custompage_forklift&action=saveConfiguration&paramjson='+json+'&t='+Date.now(),  this.getHttpConfig()  )
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
 				if (statusHttp==401 || typeof jsonResult === 'string') {
@@ -158,7 +168,7 @@ appCommand.controller('ForkLiftControler',
 		var self=this;
 		var param = { "source": source };
 		var json = encodeURI( angular.toJson( param, false));
-		$http.get( '?page=custompage_forklift&action=testconnection&paramjson='+json+'&t='+Date.now()  )
+		$http.get( '?page=custompage_forklift&action=testconnection&paramjson='+json+'&t='+Date.now(),  this.getHttpConfig()  )
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
 				if (statusHttp==401 || typeof jsonResult === 'string') {
@@ -215,7 +225,7 @@ appCommand.controller('ForkLiftControler',
 		self.wait=true;
 		self.synchronisation.listevents='';
 		self.synchronisation.report='';
-		$http.get( '?page=custompage_forklift&action=synchronisationdetect'+'&t='+Date.now()  )
+		$http.get( '?page=custompage_forklift&action=synchronisationdetect'+'&t='+Date.now(),  this.getHttpConfig()  )
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
 				if (statusHttp==401 || typeof jsonResult === 'string') {
@@ -422,7 +432,7 @@ appCommand.controller('ForkLiftControler',
 		
 		// console.log("executeListUrl call HTTP");
 
-		$http.get( '?page=custompage_forklift&t='+Date.now()+'&'+self.postParams.listUrlCall[ self.postParams.listUrlIndex ] )
+		$http.get( '?page=custompage_forklift&t='+Date.now()+'&'+self.postParams.listUrlCall[ self.postParams.listUrlIndex ],  this.getHttpConfig() )
 			.success( function ( jsonResult, statusHttp, headers, config ) {
 				// connection is lost ?
 				if (statusHttp==401 || typeof jsonResult === 'string') {

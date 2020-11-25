@@ -113,8 +113,12 @@ public class Index implements PageController {
             
 			HashMap<String,Object> answer = null;
 
-			
-			 if ("synchronisationdetect".equals(action))
+            //Make sure no action is executed if the CSRF protection is active and the request header is invalid
+            if (! TokenValidator.checkCSRFToken(request, response)) {
+                return;
+            }
+            
+			if ("synchronisationdetect".equals(action))
 	        {
 	          	answer = new HashMap<String,Object>()
 	          	ConfigurationSet configurationSet= forkliftAPI.loadConfiguration("default", pageResourceProvider.getPageName(), apiSession.getTenantId());
